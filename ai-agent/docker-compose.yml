@@ -1,0 +1,17 @@
+services:
+  agent:
+    build: .
+    container_name: ai_agent_core
+    # ↓ この2行を追記（ホストの5000番とコンテナの5000番を繋ぐ）
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./workspace:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock  # ←この行を追加！
+    working_dir: /workspace
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+    tty: true
+    stdin_open: true
+    restart: always

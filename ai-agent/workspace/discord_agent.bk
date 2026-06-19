@@ -1,0 +1,118 @@
+import os
+import subprocess
+import discord
+from discord.ext import commands
+from google import genai
+from google.genai import types
+
+# ----------------------------------------------------
+# 1. エージェントの「手足（Tool）」の定義
+# ----------------------------------------------------
+def update_agent_code(code: str) -> str:
+    """エージェント自身のソースコード(discord_agent.py)を指定された内容で完全に書き換えます。"""
+    try:
+        target_path = "/workspace/discord_agent.py"
+        with open(target_path, "w", encoding="utf-8") as f:
+            f.write(code)
+        return "SUCCESS: コードの書き換えに成功しました。変更を反映するために必ず 'restart_system' を実行してください。"
+    except Exception as e:
+        return f"ERROR: コードの書き換えに失敗しました: {e}"
+
+def restart_system() -> str:
+    """システムを再起動して、書き換えた新しいコードを反映させます。"""
+    cmd = "sleep 2 && docker restart ai_agent_core"
+    subprocess.Popen(cmd, shell=True)
+    return "SUCCESS: 2秒後にシステム（コンテナ）が再起動します。"
+
+# ----------------------------------------------------
+# 2. 初期化と設定
+# ----------------------------------------------------
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+DISCORD_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+
+gemini_client = genai.Client(api_key=GEMINI_KEY)
+
+# インテントの明示的な全有効化
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix="$", intents=intents)
+my_tools = [update_agent_code, restart_system]
+
+# ----------------------------------------------------
+# 3. イベント処理（メンション・DMの確実な捕捉）
+# ----------------------------------------------------
+@bot.event
+async def on_ready():
+    print(f"=== 自律進化エージェント起動完了: {bot.user.name} ===")
+    print("【通知】$ask コマンドは廃止されました。")
+    print("メンション（@Bot名）またはDMで直接指示を出してください。")
+
+@bot.event
+async def on_message(message):
+    # 自分自身の発言は無視
+    if message.author == bot.user:
+        return
+
+    # メンションされたか、またはDMかを確認（確実な判定アルゴリズムに変更）
+    is_mentioned = bot.user.mentioned_in(message)
+    is_dm = isinstance(message.channel, discord.DMChannel)
+
+    if is_mentioned or is_dm:
+        # プロンプトの抽出（メンション文字列をきれいに除去）
+        prompt = message.content
+        if bot.user.mentions:
+            for mention in message.mentions:
+                prompt = prompt.replace(f"<@{mention.id}>", "").replace(f"<@!{mention.id}>", "")
+        prompt = prompt.strip()
+
+        # 空文字ならスルー
+        if not prompt:
+            return
+
+        async with message.channel.typing():
+            print(f"[{message.author.name}] からの指示: {prompt}")
+            
+            system_instruction = (
+                "あなたはGPDマシンのUbuntu上のDockerコンテナ内で動く、自己進化型AIエージェントです。\n"
+                "ユーザーからコードの修正や機能追加の指示を受けた場合、提供されているツール（update_agent_code, restart_system）を自律的に組み合わせて実行してください。\n"
+                "【最重要ルール】コードを書き換える際は、絶対に古い 'google.generativeai' を使わず、必ず現在使っている最新の 'from google import genai' を使った構文（Clientインスタンスを生成する方式）を維持してください。\n"
+                "コードを書き換えた後は、必ず 'restart_system' ツールを呼び出して自身を再起動させてください。\n"
+                "出力は結論ファースト、箇条書きを多用し、過剰な修飾を廃した簡潔なエンジニア向け表現にしてください。"
+            )
+
+            try:
+                response = gemini_client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_instruction,
+                        tools=my_tools,
+                    )
+                )
+                
+                # Tool Callingの実行
+                if response.function_calls:
+                    for function_call in response.function_calls:
+                        name = function_call.name
+                        args = function_call.args
+                        await message.channel.send(f"⚙️ ツールを実行します: `{name}`")
+                        
+                        if name == "update_agent_code":
+                            result_str = update_agent_code(args["code"])
+                        elif name == "restart_system":
+                            result_str = restart_system()
+                        else:
+                            result_str = f"Unknown function: {name}"
+                        
+                        await message.channel.send(f"✅ ツールの実行結果: {result_str}")
+                
+                if response.text:
+                    await message.reply(response.text)
+                    
+            except Exception as e:
+                await message.channel.send(f"❌ エラーが発生しました: {e}")
+
+# ----------------------------------------------------
+# 4. 実行
+# ----------------------------------------------------
+if __name__ == "__main__":
+    bot.run(DISCORD_TOKEN)
