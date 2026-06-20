@@ -1,10 +1,15 @@
-from flask import Flask
+from flask import Flask, jsonify
 from threading import Thread
 import os
 import time
+import sys
 
-# Google GenAI クライアントの初期化
-from google import genai
+# 自作ユーティリティのインポート
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utils.healthcheck import get_system_metrics
+from utils.logger import get_logger
+
+logger = get_logger("discord_agent")
 
 # エージェントの現在の状態を保持する変数
 agent_status = "Initializing..."
@@ -45,37 +50,47 @@ def start_flask_app():
         </html>
         """
 
-    print(f"Starting Flask app on port {WEB_SERVER_PORT}...")
+    @app.route('/healthz')
+    def healthz():
+        metrics = get_system_metrics()
+        metrics["agent_status"] = agent_status
+        # warningステータスでもコンテナ自体は生きて応答しているので200、致命的エラー時のみ500
+        code = 200 if metrics["status"] in ["healthy", "warning"] else 500
+        return jsonify(metrics), code
+
+    logger.info(f"Starting Flask app on port {WEB_SERVER_PORT}...")
     try:
         app.run(host='0.0.0.0', port=WEB_SERVER_PORT)
     except Exception as e:
-        print(f"Error starting Flask app: {e}")
+        logger.error(f"Error starting Flask app: {e}")
         global agent_status
         agent_status = f"Error: Could not start web server on port {WEB_SERVER_PORT}. {e}"
 
 def main():
     global agent_status
-    print("AI Agent main process started.")
+    logger.info("AI Agent main process started.")
 
     # GenAI クライアントの初期化
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        print("GEMINI_API_KEY environment variable not set.")
+        logger.error("GEMINI_API_KEY environment variable not set.")
         agent_status = "Error: GEMINI_API_KEY environment variable not set."
         return
 
     try:
+        # google-genaiのインポートを内部で行う（テスト容易性のため）
+        from google import genai
         client = genai.Client(api_key=api_key)
-        print("Google GenAI Client initialized successfully.")
+        logger.info("Google GenAI Client initialized successfully.")
         agent_status = "Google GenAI Client initialized and ready."
         # ここにエージェントのメインロジック（Discordとの連携など）が来る
-        print("Agent is performing its tasks... (Placeholder for actual agent logic)")
+        logger.info("Agent is performing its tasks... (Placeholder for actual agent logic)")
         # 例: Discordボットの起動など
         # discord_bot.run(os.getenv("DISCORD_BOT_TOKEN"))
         agent_status = "Agent is active and monitoring Discord (placeholder)."
 
     except Exception as e:
-        print(f"Failed to initialize Google GenAI Client or run agent logic: {e}")
+        logger.error(f"Failed to initialize Google GenAI Client or run agent logic: {e}")
         agent_status = f"Error: Failed to initialize Google GenAI Client or run agent logic. {e}"
         return
 
@@ -93,6 +108,6 @@ if __name__ == "__main__":
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("AI Agent and Web Server shutting down due to KeyboardInterrupt.")
+        logger.info("AI Agent and Web Server shutting down due to KeyboardInterrupt.")
     except Exception as e:
-        print(f"AI Agent encountered an unexpected error: {e}")
+        logger.error(f"AI Agent encountered an unexpected error: {e}")
