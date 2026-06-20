@@ -76,4 +76,38 @@ def get_system_metrics() -> Dict[str, Any]:
         metrics["disk"]["error"] = f"Failed to read disk usage: {e}"
         metrics["status"] = "warning"
 
+    # 4. 閾値に基づくステータス判定
+    # statusの優先順位: unhealthy > warning > healthy
+    status_candidate = "healthy"
+    
+    # CPU 閾値評価
+    cores = os.cpu_count() or 4
+    cpu_load = metrics["cpu"].get("load_1m", 0.0)
+    if cpu_load >= cores * 3.0:
+        status_candidate = "unhealthy"
+    elif cpu_load >= cores * 1.5:
+        status_candidate = "warning"
+            
+    # メモリ 閾値評価
+    mem_percent = metrics["memory"].get("percent", 0.0)
+    if mem_percent >= 95.0:
+        status_candidate = "unhealthy"
+    elif mem_percent >= 90.0:
+        if status_candidate != "unhealthy":
+            status_candidate = "warning"
+            
+    # ディスク 閾値評価
+    disk_percent = metrics["disk"].get("percent", 0.0)
+    if disk_percent >= 95.0:
+        status_candidate = "unhealthy"
+    elif disk_percent >= 90.0:
+        if status_candidate != "unhealthy":
+            status_candidate = "warning"
+            
+    # 収集時の例外判定とのマージ
+    if metrics["status"] == "warning" and status_candidate == "unhealthy":
+        metrics["status"] = "unhealthy"
+    elif metrics["status"] == "healthy":
+        metrics["status"] = status_candidate
+
     return metrics
