@@ -72,9 +72,22 @@ def home():
 def healthz():
     metrics = get_system_metrics()
     metrics["agent_status"] = agent_status
+    # agent_status に Error が含まれる場合は unhealthy とする
+    if "Error" in agent_status:
+        metrics["status"] = "unhealthy"
     # warningステータスでもコンテナ自体は生きて応答しているので200、致命的エラー時のみ500
     code = 200 if metrics["status"] in ["healthy", "warning"] else 500
     return jsonify(metrics), code
+
+# テストハーネス用の疑似障害発生エンドポイント
+@app.route('/healthz/fail', methods=['GET', 'POST'])
+def healthz_fail():
+    if os.getenv("KANON_TEST_TRIGGER", "false").lower() != "true":
+        return jsonify({"error": "Forbidden", "message": "Test harness is disabled."}), 403
+    global agent_status
+    logger.warning("[TestHarness] Dynamic failure triggered via /healthz/fail")
+    agent_status = "Error: Simulated failure triggered by TestHarness"
+    return jsonify({"status": "error", "message": "Failure state has been set."}), 200
 
 def start_flask_app():
     logger.info(f"Starting Flask app on port {WEB_SERVER_PORT}...")
