@@ -113,24 +113,20 @@ kanon/
 
 ## 🗺️ 6. ロードマップ (Roadmap)
 
-### Phase 0: Knowledge Foundation (知識と記憶の土台) ⏳ (現在地)
-* [x] **リポジトリガバナンスと権限境界の確定**
-* [x] **Docs as Code 構造化と README / AGENTS.md の再設計**
-* [ ] **`memory/` レイアウトの整備と Git 追跡の開始**
+Kanon の成長ロードマップは、提供価値の段階を示す「能力ロードマップ」と、動作基盤を整備する「技術ロードマップ」の二重構造で定義されています。詳細な項目と進捗は [docs/roadmap.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/roadmap.md) を参照してください。
 
-### Phase 1: Survival Foundation (生存・復旧基盤)
-* [ ] ログ観測ツール（`view_logs`）および検証ツール（構文・インポートチェッカー）の実装
-* [ ] コントローラーによる LKG バックアップの作成・自動ロールバックの実装
-* [ ] API 503エラー対策（指数バックオフリトライ）の実装
+### 🚀 能力ロードマップ (Capability Roadmap)
+* **Phase 0: Foundation (基盤) [完了]**: 境界設計、エージェント憲法、記憶レイアウトの固定。
+* **Phase 1: Chat Agent (会話の確立) [現在地]**: Discord Bot と LLM の接続・応答。
+* **Phase 2: Memory Agent (長期記憶・経験蓄積)**: `memory/` の読込・検索。
+* **Phase 3: Research Agent (自律調査・要約保存)**: クローリング・情報の要約と記憶。
+* **Phase 4: Digital Twin (代理思考・ミラーリング)**: 人間の思考プロファイルの再現。
+* **Phase 5: Semi-Autonomous Agent (承認付き実行)**: 提案の起票と、承認経由のPR作成等のタスク実行。
+* **Phase 6: Autonomous / Business Agent (自律業務・仕事の獲得)**: 高い自律性に基づく業務執行。
 
-### Phase 2: Long-term Memory (長期記憶の自律運用)
-* [ ] エージェントによる `memory/` 配下への自律的な事実・経験の記録
-
-### Phase 3: Digital Twin (デジタルツイン基盤)
-* [ ] 人間のワークログ、スケジュール、健康ログのミラーリングと代行準備
-
-### Phase 4: Autonomous Research (自律調査・提案)
-* [ ] 外部情報の自律収集・要約・意思決定提案書の起票プロセスの自動化
-
-### Phase 5: Self Modification (自律自己改変)
-* [ ] 安全性が確立された状態での、エージェントソースコードの自律的拡張
+### 🛠️ 技術ロードマップ (Technical Roadmap)
+* **Phase 1: Survival & Observation (生存・観測・復旧基盤) [着手中]**: 検証、LKGバックアップ、ロールバック。
+* **Phase 2: Healthcheck & Resilience (健康診断・APIリトライ)**: 503エラー指数バックオフ、健康診断。
+* **Phase 3: Provider Abstraction (Provider の抽象化)**: LLMラッパーによる疎結合化。
+* **Phase 4: Multi-LLM (OpenAI / Claude の統合)**: 他社LLMへの拡張。
+* **Phase 5: Sandbox System (安全な自己改変)**: 権限をコントローラーに委譲したコード適用環境。
