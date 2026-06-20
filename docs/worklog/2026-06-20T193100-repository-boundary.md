@@ -39,7 +39,7 @@ kanon/
 │   │   └── lessons.md
 │   ├── guides/                     # エージェント自身が従うべきオペレーションガイド
 │   └── worklog/                    # 日々の開発記録・ログ
-│       └── 2026-06-20-repository-boundary.md  # [本ファイル]
+│       └── 2026-06-20T193100-repository-boundary.md  # [本ファイル]
 ├── controller/                     # 【エージェント: アクセス不可】監視・再起動スクリプト等の配置ディレクトリ
 └── ai-agent/                       # デプロイ・実行環境
     ├── docker-compose.yml          # 【エージェント: Read-Only】※ secrets/.env を env_file に指定

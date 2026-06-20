@@ -92,7 +92,7 @@ kanon/
 │   ├── roadmap.md       # 開発ロードマップと進捗管理
 │   ├── chatgpt_briefing.md # [本ファイル] ChatGPTへのブリーフィング資料
 │   └── worklog/         # 作業ログ
-│       └── 2026-06-20-repository-boundary.md
+│       └── 2026-06-20T193100-repository-boundary.md
 ├── controller/          # 監視・再起動スクリプト等の配置ディレクトリ
 └── ai-agent/            # エージェント実行環境
     ├── Dockerfile       # コンテナイメージ定義
