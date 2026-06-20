@@ -9,6 +9,8 @@ services:
       - ./workspace:/workspace
       - /var/run/docker.sock:/var/run/docker.sock  # ←この行を追加！
     working_dir: /workspace
+    env_file:
+      - ./secrets/.env
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}

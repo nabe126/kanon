@@ -1,6 +1,8 @@
 # Environment variables
 .env
+*.env
 ai-agent/.env
+ai-agent/secrets/.env
 
 # OS files
 .DS_Store
