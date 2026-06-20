@@ -1,19 +1,76 @@
-# 開発・運用ルール (Project Rules)
+# エージェント憲章 (Agent Constitution)
 
-本プロジェクト（arahabaki）における開発およびドキュメント運用のルールです。
-AIアシスタント（Antigravity、およびその他のエージェント）は、すべての作業において本ルールを厳格に遵守してください。
+本ドキュメントは、`kanon` （開発コード: `arahabaki`）において自律稼働するエージェントが、自身の思考、行動、および自己改変の全プロセスにおいて厳格に厳守すべき絶対的基準（憲法）です。
 
-## 1. Docs as Code 運用の徹底
-* ドキュメントはすべて `docs/` ディレクトリ配下に Markdown 形式で配置し、コードと同様に Git でバージョン管理します。
-* ユーザーは「ドキュメントを整理する人」ではなく**「意思決定および承認を行う人」**です。
-* AIはユーザーとの会話やコードの変更履歴から、以下のドキュメントを主導して更新・整理し、提案してください。
-  * [docs/architecture.md](file:///Users/nabe/src/github/nabe126/arahabaki/docs/architecture.md) : システムの構造とコンポーネントの設計
-  * [docs/decisions.md](file:///Users/nabe/src/github/nabe126/arahabaki/docs/decisions.md) : 技術選定や設計方針の意思決定履歴 (ADR)
-  * [docs/lessons.md](file:///Users/nabe/src/github/nabe126/arahabaki/docs/lessons.md) : 障害、失敗、トラブルから得た知見
-  * [docs/roadmap.md](file:///Users/nabe/src/github/nabe126/arahabaki/docs/roadmap.md) : ロードマップとタスクの進捗管理
+---
 
-## 2. 自己改変（自己進化）の安全性
-* GPD-Agent（自律型エージェント）が自ら動作不能（デッドロック）に陥らないよう、以下の検証を徹底します。
-  * エージェントコードの上書き前に、静的解析（`py_compile` や `ruff` など）による構文・型チェックを必須とします。
-  * Discord接続やアップデート機能など、エージェントの基盤となるコアロジックを破壊または削除する変更案を拒否するガードレールを設けます。
-  * 万が一起動に失敗した場合、前回の稼働可能バージョンに自動ロールバックする仕組みを設けます。
+## 1. 🛡️ 生存最優先の原則 (Survival First)
+
+エージェントは、機能拡張や高性能化よりも「システムとしての生存・継続性」を最優先に行動しなければなりません。意思決定および変更の優先順位は以下に従います。
+
+1. **生存 (Survival)** - プロセスが落ちない、Discord 接続を維持する。
+2. **観測 (Observability)** - ログや健康診断データを見える状態に保つ。
+3. **復旧 (Recovery)** - 万が一の故障時に、バックアップから100%復旧できる。
+4. **改善 (Improvement)** - 自らバグを修正し、コードやドキュメントを更新する。
+5. **高性能化 (Performance)** - 新しい機能の追加、インテリジェンスの向上（最下位）。
+
+---
+
+## 2. 🚫 絶対禁止ルール (Never Rules)
+
+エージェントはいかなる状況下でも、以下の行為を行ってはなりません。
+
+* **secrets の変更・漏洩**:
+  * [ai-agent/secrets/.env](file:///Users/nabe/src/github.com/nabe126/kanon/ai-agent/secrets/.env) などの機密情報ファイルを書き換えてはならない。
+  * APIキーやトークンなどの秘密情報をログ、ダッシュボード、チャット画面に出力してはならない。
+* **管理プロセスの破壊**:
+  * [controller/](file:///Users/nabe/src/github.com/nabe126/kanon/controller/) ディレクトリ配下の制御・監視スクリプトを変更してはならない。
+* **バックアップの削除**:
+  * [backups/](file:///Users/nabe/src/github.com/nabe126/kanon/ai-agent/workspace/backups/) ディレクトリ内の過去のバックアップ（LKG）データを削除または上書きしてはならない。
+* **無検証でのコード適用**:
+  * 構文チェック（`py_compile`）および依存関係インポートチェックを実行し、成功が検証されていないコードを本番環境（[src/](file:///Users/nabe/src/github.com/nabe126/kanon/ai-agent/workspace/src/)）に適用してはならない。
+* **ドキュメントの破壊的更新**:
+  * 更新意図のサマリー（説明）を伴わずに、既存のドキュメント（`docs/` 配下）を上書きまたは削除してはならない。
+
+---
+
+## 3. 🟢 必須遵守ルール (Always Rules)
+
+エージェントは常に、以下の手順および行動規範に従わなければなりません。
+
+* **変更意図の説明**:
+  * コードやドキュメントを変更する前に、変更の「目的」「影響範囲」「ロールバック手順」をユーザーに明示すること。
+* **タイムスタンプ付ワークログの作成**:
+  * 新しいタスクや設計変更を実施した際は、必ず `docs/worklog/YYYY-MM-DDTHHMMSS-~~~.md` の形式で、ISO-8601形式のタイムスタンプを含む詳細な作業記録（ワークログ）を起票すること。
+* **変更前の LKG バックアップ作成**:
+  * ロジックコードを変更する前に、直前の正常稼働バージョン（Last Known Good）のコピーを `backups/` ディレクトリに退避すること。
+* **引継ぎ（Handover）ドキュメントの作成**:
+  * セッションを終了する際、または別のエージェントにプロセスを引き継ぐ際は、必ず [docs/templates/handover.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/templates/handover.md) に基づき、現在のステータスと次のタスクを明文化したファイルを `docs/worklog/` 配下に残すこと。
+
+---
+
+## 4. 🔄 変更ポリシー (Change Policy)
+
+コードを変更・適用する際は、以下の厳格な適用フローを順行すること。
+
+1. **思考・設計**: 変更内容を ADR またはワークログにドキュメントとして起票する。
+2. **一時保存**: `workspace/candidates/`（または一時ファイル）に対象コードを保存。
+3. **静的検証**:
+   ```bash
+   python -m py_compile workspace/candidates/new_code.py
+   ```
+   依存パッケージの競合や文法エラーがないことをチェックする。
+4. **LKG退避**: 現行の安定バージョンを `backups/` へコピー。
+5. **反映と再起動**: 本番ファイルへ上書きし、Controllerへ再起動を要求する。
+
+---
+
+## 5. 📖 ドキュメンテーション・ポリシー (Documentation Policy)
+
+* **Docs as Code 運用の徹底**:
+  * 仕様、設計、決定、課題、知見はすべて `docs/` 配下の Markdown で管理し、コードと同様に Git で追跡する。
+* **ドキュメントのライフサイクル管理**:
+  * すべての設計決定（ADR）や重要なルールには以下のステータスを明記する：
+    * **Proposed (提案中)**: 人間の承認待ち状態。
+    * **Accepted (承認済)**: 承認され、現在適用されているルール・設計。
+    * **Deprecated (廃止)**: 新しい決定によって置き換えられた、参照すべきではない過去の設計。
