@@ -62,6 +62,20 @@ graph TD
 2. **Controller (特権管理)**: ホストの Docker ソケットを管理し、バックアップ、ロールバック、および Sandbox の健康監視と再起動を代行します。
 3. **Memory & Docs (Markdown + Git)**: 人間の経歴やヘルスログ、意思決定履歴を含む長期記憶、および設計決定文書（ADR）を格納する永続化領域。
 
+### 📐 Memory Subsystem & 思考パイプライン (Phase 2 構想)
+
+Kanon における「自律稼働」および「記憶の蓄積」は、単純な常駐ループではなく、以下の3層からなる **「思考ログ処理パイプライン（Pipeline-based Autonomy）」** として定義されます。
+
+```mermaid
+graph LR
+    Inbox["Inbox (一時記憶 / チャットログ)"] --> Processor["Processor (思考・要約エンジン)"]
+    Processor --> Output["Output (長期記憶 / ADR / Discord)"]
+```
+
+* **Inbox (インプット層)**: チャット履歴やシステムログなどの生データを一時保存するバッファ。
+* **Processor (思考処理層)**: 定期バッチやトリガーによって動き、生ログのクリーニング、構造化、および要約を行う LLM 思考エンジン。
+* **Output (アウトプット・永続化層)**: 要約された「経験・知識」を `memory/` 配下に格納、または自動的に ADR/Lessons を人間に提案（Drafting）する。
+
 ---
 
 ## 📂 4. リポジトリ・レイアウト (Repository Layout)

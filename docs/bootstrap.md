@@ -43,6 +43,7 @@
   * [memory/](file:///Users/nabe/src/github.com/nabe126/kanon/memory/): 将来的な記憶モジュール（未着手）。
 * **Monorepo の決定**: 現在は「脳 (Core)」「記憶 (Memory)」「仕事 (Workhub)」の論理境界を維持したまま、単一リポジトリを維持。
 * **記憶戦略 (Memory Strategy)**: 現時点では外部の VectorDB/GraphDB は使用せず、軽量なインメモリ ＋ 永続ファイル（`workspace/state/conversation_history.json`）によるシンプルな会話履歴追跡を行う。
+* **Memory Subsystem (Phase 2 構想)**: 常駐ループではなく「思考ログ処理パイプライン（inbox ➔ processor ➔ output）」として自立稼働を定義。定期的な集約バッチを実行し、過去の対話や思考ログから自動的に Lessons や ADR 提案を抽出・要約起票する。
 * **Sandbox & コントローラーモデル**: 
   * `ai-agent` コンテナは独立して稼働。
   * ホスト側で動作する `controller/monitor.py` が、コンテナの `/healthz` API にポーリング監視を実行。
