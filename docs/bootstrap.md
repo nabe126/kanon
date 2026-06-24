@@ -26,9 +26,10 @@
   1. **Docker デプロイ検証**: コンテナ起動、Flask健康診断（`/healthz`）応答が正常であること。➔ **Pass (L2)** (Ubuntu 26.04 実機にて実証)
   2. **Discord 接続**: 実トークンでの Discord ゲートウェイ実接続成功。➔ **Todo (Pending)**
   3. **Gemini 疎通**: 実 API キーでの Gemini API 実疎通および返答成功。➔ **Todo (Pending)**
-  4. **monitor.py 自動復旧実証**: `/healthz` 異常時の自動ロールバックおよびコンテナ再起動の成功。➔ **Todo (Pending)**
-  5. **LKG 復元実証**: 異常コード混入時に LKG ディレクトリからの完全復元成功。➔ **Todo (Pending)**
-  6. **healthcheck チューニング**: 実機での平常負荷に適した閾値パラメータの確定。➔ **Todo (Pending)**
+  4. **monitor.py 起動・LKG初期作成**: 実機にて `monitor.py` が正常に立ち上がり、初期 LKG が保存されること。➔ **Pass (L3-Step1)** (実機検証成功)
+  5. **monitor.py 自動ロールバック実証**: `/healthz` 異常時の自動ロールバックおよびコンテナ再起動の成功。➔ **Todo (Pending)**
+  6. **LKG 復元実証**: 異常コード混入時に LKG ディレクトリからの完全復元成功。➔ **Todo (Pending)**
+  7. **healthcheck チューニング**: 実機での平常負荷に適した閾値パラメータの確定。➔ **Todo (Pending)**
 
 ---
 
