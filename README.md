@@ -76,6 +76,13 @@ graph LR
 * **Processor (思考処理層)**: 定期バッチやトリガーによって動き、生ログのクリーニング、構造化、および要約を行う LLM 思考エンジン。
 * **Output (アウトプット・永続化層)**: 要約された「経験・知識」を `memory/` 配下に格納、または自動的に ADR/Lessons を人間に提案（Drafting）する。
 
+### ⚙️ 起動構成の要件 (Container Runtime Requirements)
+エージェントコンテナ（`ai_agent_core`）のビルドおよび自動ロールバック再起動を保障するため、以下の構成要件を維持しなければなりません。
+* **Docker CLI 依存の排除**: コンテナ内からの特権的 Docker 操作によるセキュリティリスクと環境依存を排除するため、`Dockerfile` 内での Docker CLI インストールは行わず、シンプルな Python 実行環境とします。
+* **CMD 定義の固定**: ロールバック起動失敗時に Docker デーモンがコンテナを正しく開始できるよう、`Dockerfile` の末尾には必ず `CMD ["python3", "src/discord_agent.py"]` を定義してください。
+* **実機検証履歴**:
+  * GPD WIN 3 (Ubuntu 26.04) 上でのビルド、起動、Flaskヘルスチェック（`/healthz`）、およびモックモードでの Discord ボットの動作成功を確認済み（L2検証合格）。
+
 ---
 
 ## 📂 4. リポジトリ・レイアウト (Repository Layout)

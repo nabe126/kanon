@@ -2,12 +2,11 @@ services:
   agent:
     build: .
     container_name: ai_agent_core
-    # ↓ この2行を追記（ホストの5000番とコンテナの5000番を繋ぐ）
     ports:
       - "5000:5000"
     volumes:
       - ./workspace:/workspace
-      - /var/run/docker.sock:/var/run/docker.sock  # ←この行を追加！
+      - /var/run/docker.sock:/var/run/docker.sock
     working_dir: /workspace
     env_file:
       - ./secrets/.env

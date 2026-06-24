@@ -19,17 +19,16 @@
 
 ## 2. Current Status
 
-* **Phase 完成度**: Phase 1 の基礎コンポーネント（検証、ヘルスチェック、ログ、世代管理ロールバックモニター、Discordモック）の実装および L1 単体テスト（pytest 21件）が完了（コミット `0711763`）。
-* **現在のフォーカス**: 実機（GPD WIN 3 / Ubuntu / Docker）環境における結合テストおよび疎通・監視の **L2/L3 検証**。
-* **Phase 1 Exit Criteria (完了判定基準)**:
-  1. **Discord 接続**: 実トークンでの Discord ゲートウェイ実接続成功。
-  2. **Gemini 疎通**: 実 API キーでの Gemini API 実疎通および返答成功。
-  3. **monitor.py 自動復旧実証**: `/healthz` 異常時の自動ロールバックおよびコンテナ再起動の成功。
-  4. **LKG 復元実証**: 異常コード混入時に LKG ディレクトリからの完全復元成功。
-  5. **healthcheck チューニング**: 実機での平常負荷に適した閾値パラメータの確定。
-* **未決の検証 (Open Validations)**:
-  * 実機 Docker デーモンおよび Docker socket 連携を介した、`monitor.py` による実再起動。
-  * `secrets/.env` に本物の API キーを適用した、Discord サーバーおよび Gemini API との実接続テスト。
+* **Phase 完成度**: Phase 1 の基礎コンポーネント（検証、ヘルスチェック、ログ、世代管理モニター、テストハーネス）の実装および L1 単体テスト（pytest 23件）が完了。
+* **実機検証実績**: GPD WIN 3 (Ubuntu 26.04) 実機にて、Docker ビルド・起動・Flaskヘルスチェック（`/healthz`）・Mock動作の検証を完了（**L2検証合格**）。
+* **現在のフォーカス**: `monitor.py` による実再起動・LKG復元（ロールバック結合テスト）および Discord/Gemini の本物接続検証（L2/L3）。
+* **Phase 1 Exit Criteria (完了判定基準) と現在の進捗**:
+  1. **Docker デプロイ検証**: コンテナ起動、Flask健康診断（`/healthz`）応答が正常であること。➔ **Pass (L2)** (Ubuntu 26.04 実機にて実証)
+  2. **Discord 接続**: 実トークンでの Discord ゲートウェイ実接続成功。➔ **Todo (Pending)**
+  3. **Gemini 疎通**: 実 API キーでの Gemini API 実疎通および返答成功。➔ **Todo (Pending)**
+  4. **monitor.py 自動復旧実証**: `/healthz` 異常時の自動ロールバックおよびコンテナ再起動の成功。➔ **Todo (Pending)**
+  5. **LKG 復元実証**: 異常コード混入時に LKG ディレクトリからの完全復元成功。➔ **Todo (Pending)**
+  6. **healthcheck チューニング**: 実機での平常負荷に適した閾値パラメータの確定。➔ **Todo (Pending)**
 
 ---
 
