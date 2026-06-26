@@ -13,6 +13,7 @@ services:
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - KANON_TEST_TRIGGER=${KANON_TEST_TRIGGER}
     tty: true
     stdin_open: true
     restart: always
