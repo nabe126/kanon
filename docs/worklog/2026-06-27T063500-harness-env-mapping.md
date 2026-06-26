@@ -74,3 +74,13 @@
 * **実施内容**:
   * [docs/architecture/phase2-design-review.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/architecture/phase2-design-review.md) を新規作成。各論点のトレードオフ、推奨案をまとめ、ADR-010/ADR-011 の起票候補を提案。
   * `bootstrap.md` の Read Next に参照リンクを追記。
+
+---
+
+## 9. 📝 追記: 2026-06-27T08:20:00+09:00 - 人間の認知モデルに基づく長期記憶構造への設計再構成
+* **目的**:
+  * 人間の認知制約（Working Memory容量制限、Baddeley/Tulvingモデル、優先度付き Read Bus）に準拠したエージェント記憶サブシステムへの設計再構成。
+* **実施内容**:
+  * **設計書の新規起票**: [docs/architecture/phase2-cognitive-memory-design.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/architecture/phase2-cognitive-memory-design.md) を作成。L0〜L4記憶階層、Working Memory（3〜10個制限）、フォールバック優先検索経路（Read Bus）、および日本十進分類法（NDC）を参考モデルとした Agent Decimal Classification (ADC) の適用評価を明文化。
+  * **他ドキュメントの同期**: `bootstrap.md` と `roadmap.md` の Phase 2 マイルストーン、タスクリスト、Exit Criteria をこの認知モデルに基づき全面的に更新。
+
