@@ -33,4 +33,15 @@
 
 ## 4. 🚦 現在の検証ステータス
 
-* **環境変数設定の修正**: **Todo (Command execution)**
+* **環境変数設定の修正**: **Pass (L1)**
+
+---
+
+## 5. 📝 追記: 2026-06-27T06:38:29+09:00 - 開発環境およびワークログ運用ルールの改定
+* **開発環境の固定**:
+  * 連続稼働（実機検証）の必要がない単体テストは、すべて M4 Mac 上で行うことを決定。
+* **ワークログの運用変更**:
+  * 毎回新規にワークログファイルを起票するのを廃止。
+  * トピックや日付単位で同一のファイルへ極力簡潔に追記する運用へシフト。
+* **実施した修正**:
+  * [.agents/AGENTS.md](file:///Users/nabe/src/github.com/nabe126/kanon/.agents/AGENTS.md) および [docs/bootstrap.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/bootstrap.md) を上記方針に沿ってアップデート。
