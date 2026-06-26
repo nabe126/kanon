@@ -115,3 +115,54 @@ def test_execute_rollback(mock_run):
     with open(os.path.join(monitor.SRC_DIR, "discord_agent.py"), "r") as f:
         content = f.read()
     assert content == "# Good logic code\n"  # 元の健康なコードに戻っていること
+
+@patch("monitor.check_health")
+@patch("monitor.execute_rollback")
+@patch("monitor.time.sleep")
+@patch("monitor.create_snapshot")
+@patch("monitor.save_lkg")
+def test_monitor_lifecycle(mock_save_lkg, mock_create_snapshot, mock_sleep, mock_rollback, mock_check_health):
+    """monitor.py の main() ループ全体のライフサイクル（一時的失敗からの回復、および連続失敗からのロールバック）を検証します。"""
+    # check_health の戻り値を順次設定
+    # 起動時(True) -> ループ1(False) -> ループ2(True: 一時回復) -> ループ3(False) -> ループ4(False) -> ループ5(False: 3回失敗でロールバック)
+    mock_check_health.side_effect = [
+        True,   # 起動時: healthy
+        False,  # ループ1: 一時的失敗 (1/3)
+        True,   # ループ2: 一時的回復 (1/3 -> 0/3) -> 新規 LKG 保存
+        False,  # ループ3: 再失敗 (1/3)
+        False,  # ループ4: 連続失敗 (2/3)
+        False,  # ループ5: 3回連続失敗 (3/3) -> ロールバック実行
+    ]
+    
+    # execute_rollback の戻り値
+    mock_rollback.return_value = True
+    
+    # time.sleep をモックし、呼び出しカウントを用いて無限ループを安全に脱出する
+    sleep_calls = []
+    def mock_sleep_func(seconds):
+        sleep_calls.append(seconds)
+        if len(sleep_calls) >= 5:  # 5回スリープが呼ばれたら（ループ5のロールバック後スリープ(60)時）KeyboardInterrupt でループを抜ける
+            raise KeyboardInterrupt("Exit main loop for testing")
+            
+    mock_sleep.side_effect = mock_sleep_func
+    
+    # main() を実行し、意図的にスローした KeyboardInterrupt を捕捉する
+    with pytest.raises(KeyboardInterrupt):
+        monitor.main()
+        
+    # 検証項目:
+    # 1. 起動時に check_health() が True だったため、初期 LKG が作成・保存されていること
+    assert mock_create_snapshot.call_count >= 1
+    assert mock_save_lkg.call_count >= 1
+    
+    # 2. ロールバックが呼び出されていること
+    mock_rollback.assert_called_once()
+    
+    # 3. スナップショットと LKG が合計 2 回作成・保存されていること
+    # - 起動時 (1回目)
+    # - 一時回復時 (2回目)
+    # - ロールバック後は LKG を復元しただけなので、追加の保存は走らない
+    assert mock_create_snapshot.call_count == 2
+    assert mock_save_lkg.call_count == 2
+
+

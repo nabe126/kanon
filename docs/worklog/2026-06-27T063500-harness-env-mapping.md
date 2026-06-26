@@ -45,3 +45,15 @@
   * トピックや日付単位で同一のファイルへ極力簡潔に追記する運用へシフト。
 * **実施した修正**:
   * [.agents/AGENTS.md](file:///Users/nabe/src/github.com/nabe126/kanon/.agents/AGENTS.md) および [docs/bootstrap.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/bootstrap.md) を上記方針に沿ってアップデート。
+
+---
+
+## 6. 📝 追記: 2026-06-27T06:55:00+09:00 - `monitor.py` の `main()` 結合ライフサイクルテスト追加
+* **目的**:
+  * ロールバック監視プロセス (`monitor.py`) の `main()` 無限ループをシミュレートするテストを追加し、Mac ローカル上での L1 検証を完了。
+* **実装内容**:
+  * [tests/test_monitor.py](file:///Users/nabe/src/github.com/nabe126/kanon/ai-agent/workspace/tests/test_monitor.py) に `test_monitor_lifecycle` を追加。
+  * `time.sleep` のモック内にループ終了フックを仕込み、`check_health` の順次戻り値 (`side_effect`) を利用して「一時的失敗からの回復」および「連続失敗時のロールバック」の両方の状態遷移をモック検証。
+* **検証結果**:
+  * Mac 開発機（L1）上で `pytest` を実行し、全 24 件（新規含む）のテストが 100% 正常終了（**24 passed**）することを確認。
+
