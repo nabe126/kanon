@@ -19,17 +19,17 @@
 
 ## 2. Current Status
 
-* **Phase 完成度**: Phase 1 の基礎コンポーネント（検証、ヘルスチェック、ログ、世代管理モニター、テストハーネス）の実装および L1 単体テスト（pytest 23件）が完了。
+* **Phase 完成度**: Phase 1 の基礎コンポーネント（検証、ヘルスチェック、ログ、世代管理モニター、テストハーネス）の実装および L1 単体・結合テスト（pytest 24件）が完了。
 * **実機検証実績**: GPD WIN 3 (Ubuntu 26.04) 実機にて、Docker ビルド・起動・Flaskヘルスチェック（`/healthz`）・Mock動作の検証を完了（**L2検証合格**）。
-* **現在のフォーカス**: `monitor.py` による実再起動・LKG復元（ロールバック結合テスト）および Discord/Gemini の本物接続検証（L2/L3）。
+* **現在のフォーカス**: ユーザーによる実機検証（ロールバック、Discord/Gemini 接続）の完了待ち（Pending）、および Phase 2 長期記憶基盤の設計準備。
 * **Phase 1 Exit Criteria (完了判定基準) と現在の進捗**:
   1. **Docker デプロイ検証**: コンテナ起動、Flask健康診断（`/healthz`）応答が正常であること。➔ **Pass (L2)** (Ubuntu 26.04 実機にて実証)
-  2. **Discord 接続**: 実トークンでの Discord ゲートウェイ実接続成功。➔ **Todo (Pending)**
-  3. **Gemini 疎通**: 実 API キーでの Gemini API 実疎通および返答成功。➔ **Todo (Pending)**
+  2. **Discord 接続**: 実トークンでの Discord ゲートウェイ実接続成功。➔ **Todo (Pending - 要実機検証)**
+  3. **Gemini 疎通**: 実 API キーでの Gemini API 実疎通および返答成功。➔ **Todo (Pending - 要実機検証)**
   4. **monitor.py 起動・LKG初期作成**: 実機にて `monitor.py` が正常に立ち上がり、初期 LKG が保存されること。➔ **Pass (L3-Step1)** (実機検証成功)
-  5. **monitor.py 自動ロールバック実証**: `/healthz` 異常時の自動ロールバックおよびコンテナ再起動の成功。➔ **Todo (Pending)**
-  6. **LKG 復元実証**: 異常コード混入時に LKG ディレクトリからの完全復元成功。➔ **Todo (Pending)**
-  7. **healthcheck チューニング**: 実機での平常負荷に適した閾値パラメータの確定。➔ **Todo (Pending)**
+  5. **monitor.py 自動ロールバック実証**: `/healthz` 異常時の自動ロールバックおよびコンテナ再起動の成功。➔ **Pass (L1-結合テスト合格 / L2/L3実機はPending)**
+  6. **LKG 復元実証**: 異常コード混入時に LKG ディレクトリからの完全復元成功。➔ **Pass (L1-結合テスト合格 / L2/L3実機はPending)**
+  7. **healthcheck チューニング**: 実機での平常負荷に適した閾値パラメータの確定。➔ **Todo (Pending - 要実機検証)**
 
 ---
 
@@ -43,7 +43,7 @@
   * [memory/](file:///Users/nabe/src/github.com/nabe126/kanon/memory/): 将来的な記憶モジュール（未着手）。
 * **Monorepo の決定**: 現在は「脳 (Core)」「記憶 (Memory)」「仕事 (Workhub)」の論理境界を維持したまま、単一リポジトリを維持。
 * **記憶戦略 (Memory Strategy)**: 現時点では外部の VectorDB/GraphDB は使用せず、軽量なインメモリ ＋ 永続ファイル（`workspace/state/conversation_history.json`）によるシンプルな会話履歴追跡を行う。
-* **Memory Subsystem (Phase 2 構想)**: 常駐ループではなく「思考ログ処理パイプライン（inbox ➔ processor ➔ output）」として自立稼働を定義。定期的な集約バッチを実行し、過去の対話や思考ログから自動的に Lessons や ADR 提案を抽出・要約起票する。
+* **Memory Subsystem (Phase 2 構想)**: 常駐ループではなく「思考ログ処理パイプライン（inbox ➔ processor ➔ output）」として自立稼働を定義。詳細な設計仕様は [Phase 2 設計提案書](file:///Users/nabe/src/github.com/nabe126/kanon/docs/architecture/phase2-design-proposal.md) を参照。
 * **Sandbox & コントローラーモデル**: 
   * `ai-agent` コンテナは独立して稼働。
   * ホスト側で動作する `controller/monitor.py` が、コンテナの `/healthz` API にポーリング監視を実行。

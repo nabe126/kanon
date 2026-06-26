@@ -57,3 +57,13 @@
 * **検証結果**:
   * Mac 開発機（L1）上で `pytest` を実行し、全 24 件（新規含む）のテストが 100% 正常終了（**24 passed**）することを確認。
 
+---
+
+## 7. 📝 追記: 2026-06-27T07:00:00+09:00 - Phase 1 進捗バックログ整理および Phase 2 設計提案書の構築
+* **目的**:
+  * 人間による実機（L2/L3）検証を Pending とする方針を受け、ドキュメント・バックログの整理、および実機検証後に即時移行可能なように Phase 2 の詳細設計を整備。
+* **実施内容**:
+  * **設計書の新規起票**: [docs/architecture/phase2-design-proposal.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/architecture/phase2-design-proposal.md) を作成。「思考ログ処理パイプライン (inbox ➔ processor ➔ output)」の詳細、YAML Frontmatter、Git による記憶バージョン管理手法を定義。
+  * **進捗・バックログ更新**: [docs/bootstrap.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/bootstrap.md) および [docs/roadmap.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/roadmap.md) を更新。ロールバックに関する L1 テスト合格のステータス反映、および Phase 2 設計書へのリンクと To-Do を最新化。
+
+
