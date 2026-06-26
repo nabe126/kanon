@@ -1,5 +1,6 @@
 # Phase 2 設計レビュー資料: 長期記憶サブシステム基盤 (Long-term Memory Foundation)
 
+* **親ドキュメント**: [Phase 2 統合マスター仕様書 (phase2-master-spec.md)](file:///Users/nabe/src/github.com/nabe126/kanon/docs/architecture/phase2-master-spec.md)
 * **ステータス**: Proposed (設計レビュー待ち)
 * **作成日時**: 2026-06-27T07:50:00+09:00
 * **作成者**: Antigravity

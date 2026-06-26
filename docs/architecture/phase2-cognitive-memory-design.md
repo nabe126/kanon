@@ -1,5 +1,6 @@
 # 人間の認知モデルに基づく長期記憶設計書 (Cognitive Memory Architecture)
 
+* **親ドキュメント**: [Phase 2 統合マスター仕様書 (phase2-master-spec.md)](file:///Users/nabe/src/github.com/nabe126/kanon/docs/architecture/phase2-master-spec.md)
 * **ステータス**: Proposed (設計レビュー待ち)
 * **作成日時**: 2026-06-27T08:15:00+09:00
 * **作成者**: Antigravity

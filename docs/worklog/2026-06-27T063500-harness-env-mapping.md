@@ -84,3 +84,14 @@
   * **設計書の新規起票**: [docs/architecture/phase2-cognitive-memory-design.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/architecture/phase2-cognitive-memory-design.md) を作成。L0〜L4記憶階層、Working Memory（3〜10個制限）、フォールバック優先検索経路（Read Bus）、および日本十進分類法（NDC）を参考モデルとした Agent Decimal Classification (ADC) の適用評価を明文化。
   * **他ドキュメントの同期**: `bootstrap.md` と `roadmap.md` の Phase 2 マイルストーン、タスクリスト、Exit Criteria をこの認知モデルに基づき全面的に更新。
 
+---
+
+## 10. 📝 追記: 2026-06-27T08:30:00+09:00 - Phase 2 統合マスター仕様書 (Master Spec) の起票とドキュメントツリー整理
+* **目的**:
+  * 設計文書のスパゲッティ化を防止するため、Phase 2 の全設計ドキュメントを統括するシングルエントリポイント「Master Spec」を構築し、他の詳細設計書を従属（ぶら下げ）マッピング。
+* **実施内容**:
+  * **Master Spec 新規起票**: [docs/architecture/phase2-master-spec.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/architecture/phase2-master-spec.md) を作成。
+  * **詳細設計書の従属関係明記**: `phase2-cognitive-memory-design.md`, `phase2-design-proposal.md`, `phase2-design-review.md` の各ヘッダーに親ドキュメントへのリンクを追記。
+  * **リンクの集約**: `bootstrap.md` および `roadmap.md` からの個別設計へのリンクを、新設した `phase2-master-spec.md` への単一リンクへ集約。
+
+
