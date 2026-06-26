@@ -66,4 +66,11 @@
   * **設計書の新規起票**: [docs/architecture/phase2-design-proposal.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/architecture/phase2-design-proposal.md) を作成。「思考ログ処理パイプライン (inbox ➔ processor ➔ output)」の詳細、YAML Frontmatter、Git による記憶バージョン管理手法を定義。
   * **進捗・バックログ更新**: [docs/bootstrap.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/bootstrap.md) および [docs/roadmap.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/roadmap.md) を更新。ロールバックに関する L1 テスト合格のステータス反映、および Phase 2 設計書へのリンクと To-Do を最新化。
 
+---
 
+## 8. 📝 追記: 2026-06-27T07:55:00+09:00 - Phase 2 長期記憶基盤の設計レビュー資料の作成
+* **目的**:
+  * Phase 2 実装着手前の設計合意・レビューのため、主要な技術的論点（責務、API、パイプライン、リポジトリ分離、検索方式、将来像）に関する整理資料を構築。
+* **実施内容**:
+  * [docs/architecture/phase2-design-review.md](file:///Users/nabe/src/github.com/nabe126/kanon/docs/architecture/phase2-design-review.md) を新規作成。各論点のトレードオフ、推奨案をまとめ、ADR-010/ADR-011 の起票候補を提案。
+  * `bootstrap.md` の Read Next に参照リンクを追記。
