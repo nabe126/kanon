@@ -187,15 +187,13 @@ def main():
         
         # 6. touch の追加による B 側検証の実行
         print("[L3 Sim] Executing touch to trigger autoreload (Touch-B)...")
-        target_file = os.path.join(SRC_DIR, "discord_agent.py")
-        if os.path.exists(target_file):
-            try:
-                os.utime(target_file, None)
-                evidence.append(f"Executed touch on: {os.path.basename(target_file)}")
-            except Exception as e:
-                evidence.append(f"Failed to touch: {e}")
+        # ホスト側からの touch は root 所有ファイルのため Permission denied になる。
+        # docker exec を使ってコンテナ内（root）で touch を実行し、権限問題を回避する。
+        res_touch = run_cmd("docker exec kanon-test-agent-core touch /workspace/src/discord_agent.py")
+        if res_touch.returncode == 0:
+            evidence.append("Executed touch successfully via docker exec.")
         else:
-            evidence.append("Error: target_file does not exist.")
+            evidence.append(f"Failed to touch via docker exec: {res_touch.stdout}")
             
         # touch後、Flask オートリロードによる復帰を待つ (最大15秒)
         recovered = False
