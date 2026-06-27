@@ -94,4 +94,16 @@
   * **詳細設計書の従属関係明記**: `phase2-cognitive-memory-design.md`, `phase2-design-proposal.md`, `phase2-design-review.md` の各ヘッダーに親ドキュメントへのリンクを追記。
   * **リンクの集約**: `bootstrap.md` および `roadmap.md` からの個別設計へのリンクを、新設した `phase2-master-spec.md` への単一リンクへ集約。
 
+---
+
+## 11. 📝 追記: 2026-06-27T09:20:00+09:00 - L3 実機依存の排除および完全自動テスト基盤の段階的構築
+* **目的**:
+  * 実機 Ubuntu での人手による L3 検証を廃止し、CI やローカルで再現可能な「閉じた L3 自動テストシミュレーション環境」を段階的に構築。
+* **実施内容 (コミット分割順)**:
+  * **Phase 1 (インフラコンテナ化)**: [docker-compose.test-l3.yml](file:///Users/nabe/src/github.com/nabe126/kanon/docker-compose.test-l3.yml) と [controller/Dockerfile.monitor](file:///Users/nabe/src/github.com/nabe126/kanon/controller/Dockerfile.monitor) を作成。セキュリティを重視し、`docker.sock` はマウントしない。
+  * **Phase 2 (シミュレーター・オートリロード)**: [run_l3_simulation.py](file:///Users/nabe/src/github.com/nabe126/kanon/ai-agent/workspace/tests/run_l3_simulation.py) を「観測型」として実装。`KANON_TEST_TRIGGER=true` 時に Flask の debug / autoreload モードを有効化し、`monitor.py` が LKG のファイルを書き戻した際に Flask が自動再起動して `healthz` が 200 に戻ることをシミュレート。
+  * **Phase 3 (Makefile統合)**: [Makefile](file:///Users/nabe/src/github.com/nabe126/kanon/Makefile) を作成し、`make test-l3` で自動テストが走るように統合。
+  * **Phase 4 (CI化)**: [.github/workflows/test-l3.yml](file:///Users/nabe/src/github.com/nabe126/kanon/.github/workflows/test-l3.yml) を作成し、GitHub Actions 上で全 L3 結合テストが PR/Push ごとに自動で実行される仕組みを構築。
+
+
 
