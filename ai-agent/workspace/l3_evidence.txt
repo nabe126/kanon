@@ -1,0 +1,18 @@
+=== L3 Integration Simulation Evidence ===
+Time: 2026-06-27 04:47:04
+
+Timeout waiting for healthy state.
+--- Agent Logs ---
+[2026-06-27 04:47:29,970] [INFO] [discord_agent] Starting Flask app on port 5000...
+[2026-06-27 04:47:29,970] [INFO] [discord_agent] AI Agent main process started.
+[2026-06-27 04:47:29,971] [WARNING] [discord_agent] GEMINI_API_KEY environment variable not set.
+[2026-06-27 04:47:29,971] [INFO] [discord_agent] DISCORD_BOT_TOKEN not found. Falling back to Mock mode.
+ * Serving Flask app 'discord_agent'
+ * Debug mode: on
+[2026-06-27 04:47:29,971] [INFO] [discord_agent] Starting mock Discord loop (KANON_MOCK_DISCORD=true or token not set).
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.18.0.2:5000
+[33mPress CTRL+C to quit[0m
+[2026-06-27 04:47:29,994] [ERROR] [discord_agent] Error starting Flask app: signal only works in main thread of the main interpreter
