@@ -89,50 +89,66 @@ def healthz_fail():
     agent_status = "Error: Simulated failure triggered by TestHarness"
     return jsonify({"status": "error", "message": "Failure state has been set."}), 200
 
-def start_self_reloader():
+def start_parent_reloader_process():
     import sys
-    src_dir = os.path.dirname(os.path.abspath(__file__))
-    logger.info(f"[Reloader] Starting self-reloader for source directory: {src_dir}")
+    import subprocess
     
-    def watch():
-        initial_mtimes = {}
-        # 初期の mtime を記録
+    src_dir = os.path.dirname(os.path.abspath(__file__))
+    logger.info(f"[Reloader] Starting parent monitor process for: {src_dir}")
+    
+    def get_mtimes():
+        mtimes = {}
         for root, _, files in os.walk(src_dir):
             for file in files:
                 if file.endswith(".py"):
                     path = os.path.join(root, file)
                     try:
-                        initial_mtimes[path] = os.path.getmtime(path)
+                        mtimes[path] = os.path.getmtime(path)
                     except Exception:
                         pass
-                        
+        return mtimes
+        
+    initial_mtimes = get_mtimes()
+    
+    env = os.environ.copy()
+    env["KANON_IS_CHILD"] = "true"
+    
+    child_cmd = [sys.executable] + sys.argv
+    p = subprocess.Popen(child_cmd, env=env)
+    
+    try:
         while True:
             time.sleep(2)
-            for root, _, files in os.walk(src_dir):
-                for file in files:
-                    if file.endswith(".py"):
-                        path = os.path.join(root, file)
-                        try:
-                            current_mtime = os.path.getmtime(path)
-                            if path not in initial_mtimes:
-                                logger.warning(f"[Reloader] New file detected: {file}. Re-executing process...")
-                                os.execv(sys.executable, [sys.executable] + sys.argv)
-                            elif current_mtime > initial_mtimes[path]:
-                                logger.warning(f"[Reloader] Modification detected: {file} (mtime: {current_mtime} > {initial_mtimes[path]}). Re-executing process...")
-                                os.execv(sys.executable, [sys.executable] + sys.argv)
-                        except Exception:
-                            pass
-                            
-    t = Thread(target=watch)
-    t.daemon = True
-    t.start()
+            if p.poll() is not None:
+                logger.info("[Reloader] Child process exited. Exiting parent...")
+                sys.exit(p.returncode)
+                
+            current_mtimes = get_mtimes()
+            changed = False
+            for path, mtime in current_mtimes.items():
+                if path not in initial_mtimes or mtime > initial_mtimes[path]:
+                    changed = True
+                    break
+                    
+            if changed:
+                logger.warning("[Reloader] File modification detected. Restarting child process...")
+                p.terminate()
+                try:
+                    p.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    p.kill()
+                    p.wait()
+                    
+                initial_mtimes = current_mtimes
+                p = subprocess.Popen(child_cmd, env=env)
+    except KeyboardInterrupt:
+        p.terminate()
+        p.wait()
 
 def start_flask_app():
     logger.info(f"Starting Flask app on port {WEB_SERVER_PORT}...")
     try:
         is_test = os.getenv("KANON_TEST_TRIGGER", "false").lower() == "true"
-        if is_test:
-            start_self_reloader()
         # use_reloader は常に False にする (Thread 起動エラーを防ぐため)
         app.run(host='0.0.0.0', port=WEB_SERVER_PORT, debug=is_test, use_reloader=False)
     except Exception as e:
@@ -258,6 +274,19 @@ def main():
             agent_status = f"Error: Discord client failed. {e}"
 
 if __name__ == "__main__":
+    is_test = os.getenv("KANON_TEST_TRIGGER", "false").lower() == "true"
+    is_child = os.getenv("KANON_IS_CHILD", "false").lower() == "true"
+    
+    if is_test and not is_child:
+        import sys
+        # テスト時かつ親プロセスの場合は、リローダーとして振る舞い子プロセスを起動する
+        try:
+            start_parent_reloader_process()
+        except KeyboardInterrupt:
+            pass
+        sys.exit(0)
+        
+    # 子プロセス (またはテスト外の本番) の場合は通常起動
     # Flaskアプリを別スレッドで開始
     flask_thread = Thread(target=start_flask_app)
     flask_thread.daemon = True  # メインスレッドが終了したらFlaskスレッドも終了
