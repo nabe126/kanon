@@ -89,11 +89,52 @@ def healthz_fail():
     agent_status = "Error: Simulated failure triggered by TestHarness"
     return jsonify({"status": "error", "message": "Failure state has been set."}), 200
 
+def start_self_reloader():
+    import sys
+    src_dir = os.path.dirname(os.path.abspath(__file__))
+    logger.info(f"[Reloader] Starting self-reloader for source directory: {src_dir}")
+    
+    def watch():
+        initial_mtimes = {}
+        # 初期の mtime を記録
+        for root, _, files in os.walk(src_dir):
+            for file in files:
+                if file.endswith(".py"):
+                    path = os.path.join(root, file)
+                    try:
+                        initial_mtimes[path] = os.path.getmtime(path)
+                    except Exception:
+                        pass
+                        
+        while True:
+            time.sleep(2)
+            for root, _, files in os.walk(src_dir):
+                for file in files:
+                    if file.endswith(".py"):
+                        path = os.path.join(root, file)
+                        try:
+                            current_mtime = os.path.getmtime(path)
+                            if path not in initial_mtimes:
+                                logger.warning(f"[Reloader] New file detected: {file}. Re-executing process...")
+                                os.execv(sys.executable, [sys.executable] + sys.argv)
+                            elif current_mtime > initial_mtimes[path]:
+                                logger.warning(f"[Reloader] Modification detected: {file} (mtime: {current_mtime} > {initial_mtimes[path]}). Re-executing process...")
+                                os.execv(sys.executable, [sys.executable] + sys.argv)
+                        except Exception:
+                            pass
+                            
+    t = Thread(target=watch)
+    t.daemon = True
+    t.start()
+
 def start_flask_app():
     logger.info(f"Starting Flask app on port {WEB_SERVER_PORT}...")
     try:
         is_test = os.getenv("KANON_TEST_TRIGGER", "false").lower() == "true"
-        app.run(host='0.0.0.0', port=WEB_SERVER_PORT, debug=is_test, use_reloader=is_test)
+        if is_test:
+            start_self_reloader()
+        # use_reloader は常に False にする (Thread 起動エラーを防ぐため)
+        app.run(host='0.0.0.0', port=WEB_SERVER_PORT, debug=is_test, use_reloader=False)
     except Exception as e:
         logger.error(f"Error starting Flask app: {e}")
         global agent_status
