@@ -92,7 +92,8 @@ def healthz_fail():
 def start_flask_app():
     logger.info(f"Starting Flask app on port {WEB_SERVER_PORT}...")
     try:
-        app.run(host='0.0.0.0', port=WEB_SERVER_PORT, debug=False, use_reloader=False)
+        is_test = os.getenv("KANON_TEST_TRIGGER", "false").lower() == "true"
+        app.run(host='0.0.0.0', port=WEB_SERVER_PORT, debug=is_test, use_reloader=is_test)
     except Exception as e:
         logger.error(f"Error starting Flask app: {e}")
         global agent_status
