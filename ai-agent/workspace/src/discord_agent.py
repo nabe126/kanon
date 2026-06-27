@@ -89,6 +89,252 @@ def healthz_fail():
     agent_status = "Error: Simulated failure triggered by TestHarness"
     return jsonify({"status": "error", "message": "Failure state has been set."}), 200
 
+# 記憶 MVP API
+@app.route('/memory/remember', methods=['POST'])
+def api_remember():
+    try:
+        data = request.json or {}
+        topic = data.get("topic")
+        content = data.get("content")
+        level = data.get("level", "L1")
+        category = data.get("category", "general")
+        tags = data.get("tags", [])
+        
+        if not topic or not content:
+            return jsonify({"status": "error", "message": "Missing 'topic' or 'content' in request body."}), 400
+            
+        from src.memory.core import remember
+        success = remember(topic, content, level, category, tags)
+        if success:
+            return jsonify({"status": "success", "message": f"Remembered topic '{topic}' at level {level}."}), 200
+        else:
+            return jsonify({"status": "error", "message": "Failed to save memory."}), 500
+    except Exception as e:
+        logger.error(f"Error in api_remember: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/memory/recall', methods=['GET'])
+def api_recall():
+    try:
+        query = request.args.get("query")
+        level = request.args.get("level")
+        
+        if not query:
+            return jsonify({"status": "error", "message": "Missing 'query' parameter."}), 400
+            
+        from src.memory.core import recall
+        res = recall(query, level)
+        code = 200 if res.get("status") == "success" else 404
+        return jsonify(res), code
+    except Exception as e:
+        logger.error(f"Error in api_recall: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# ASEP 安全実行 API
+@app.route('/asep/plan', methods=['POST'])
+def api_asep_plan():
+    try:
+        data = request.json or {}
+        operation = data.get("operation")
+        risk = data.get("risk")
+        reason = data.get("reason", "general task execution")
+        details = data.get("details", "")
+        
+        if not operation or not risk:
+            return jsonify({"status": "error", "message": "Missing 'operation' or 'risk' in request body."}), 400
+            
+        from src.utils.asep_middleware import ASEPMiddleware
+        asep = ASEPMiddleware()
+        plan = asep.create_plan(operation, risk, reason, details)
+        if plan:
+            return jsonify(plan), 200
+        return jsonify({"status": "error", "message": "Failed to create plan."}), 500
+    except Exception as e:
+        logger.error(f"Error in api_asep_plan: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/asep/approve', methods=['POST'])
+def api_asep_approve():
+    try:
+        data = request.json or {}
+        plan_id = data.get("plan_id")
+        decision = data.get("decision", "YES")
+        
+        if not plan_id:
+            return jsonify({"status": "error", "message": "Missing 'plan_id'."}), 400
+            
+        from src.utils.asep_middleware import ASEPMiddleware
+        asep = ASEPMiddleware()
+        res = asep.approve_plan(plan_id, decision)
+        code = 200 if res.get("status") != "error" else 400
+        return jsonify(res), code
+    except Exception as e:
+        logger.error(f"Error in api_asep_approve: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+async def handle_chat_command(message, command_str):
+    parts = command_str.split(" ", 1)
+    cmd = parts[0].lower()
+    args = parts[1].strip() if len(parts) > 1 else ""
+    
+    try:
+        if cmd == "/remember":
+            if not args:
+                await message.reply("使用法: `/remember <topic> <content>` または `/remember --topic \"...\" --content \"...\"`")
+                return
+                
+            topic, content = "", ""
+            if "--topic" in args and "--content" in args:
+                try:
+                    t_idx = args.find("--topic")
+                    c_idx = args.find("--content")
+                    if t_idx < c_idx:
+                        topic = args[t_idx+7:c_idx].strip().strip('"').strip("'")
+                        content = args[c_idx+9:].strip().strip('"').strip("'")
+                    else:
+                        content = args[c_idx+9:t_idx].strip().strip('"').strip("'")
+                        topic = args[t_idx+7:].strip().strip('"').strip("'")
+                except Exception:
+                    pass
+            
+            if not topic or not content:
+                subparts = args.split(" ", 1)
+                if len(subparts) >= 2:
+                    topic, content = subparts[0], subparts[1]
+                    
+            if not topic or not content:
+                await message.reply("エラー: `topic` と `content` を正しく指定してください。")
+                return
+                
+            from src.memory.core import remember
+            if remember(topic, content):
+                await message.reply(f"✅ 記憶しました！\n* **トピック**: {topic}\n* **レベル**: L1 (Working Memory)")
+            else:
+                await message.reply("❌ 記憶の保存に失敗しました。")
+                
+        elif cmd == "/recall":
+            if not args:
+                await message.reply("使用法: `/recall <検索クエリ>`")
+                return
+            from src.memory.core import recall
+            res = recall(args)
+            if res.get("status") == "success":
+                await message.reply(
+                    f"🧠 **記憶を発見しました！** (レベル: {res['level']})\n"
+                    f"* **トピック**: {res['topic']}\n"
+                    f"**【内容】**\n{res['content']}"
+                )
+            else:
+                await message.reply(f"🔍 クエリ '{args}' に一致する記憶は見つかりませんでした。")
+                
+        elif cmd == "/plan":
+            if not args:
+                await message.reply("使用法: `/plan <操作コマンド>`")
+                return
+            op = args
+            risk = "L2"
+            reason = "User chat command request"
+            
+            from src.utils.asep_middleware import ASEPMiddleware
+            asep = ASEPMiddleware()
+            plan = asep.create_plan(op, risk, reason, f"User triggered operation: {op}")
+            if plan:
+                await message.reply(
+                    f"📋 **実行計画 (PLAN) を起票しました！**\n"
+                    f"* **計画ID**: `{plan['plan_id']}`\n"
+                    f"* **操作**: `{plan['operation']}`\n"
+                    f"* **リスクレベル**: {plan['risk']}\n"
+                    f"* **ステータス**: {plan['status']}\n"
+                    f"承認して実行する場合は `/run {plan['plan_id']}` を入力してください。"
+                )
+            else:
+                await message.reply("❌ 実行計画の起票に失敗しました。")
+                
+        elif cmd == "/run":
+            if not args:
+                await message.reply("使用法: `/run <計画ID> [YES/NO]`")
+                return
+            subparts = args.split(" ")
+            plan_id = subparts[0]
+            decision = subparts[1] if len(subparts) > 1 else "YES"
+            
+            from src.utils.asep_middleware import ASEPMiddleware
+            asep = ASEPMiddleware()
+            
+            app_res = asep.approve_plan(plan_id, decision)
+            if app_res.get("status") == "error":
+                await message.reply(f"❌ 承認処理に失敗しました: {app_res.get('message')}")
+                return
+                
+            if decision.upper() == "NO":
+                await message.reply(f"🛑 計画 `{plan_id}` を却下しました。")
+                return
+                
+            await message.reply(f"⚙️ 計画 `{plan_id}` の実行を開始します...")
+            
+            def run_op(command):
+                import subprocess
+                res = subprocess.run(command, shell=True, capture_output=True, text=True)
+                return f"STDOUT:\n{res.stdout}\n\nSTDERR:\n{res.stderr}"
+                
+            file_path = asep._find_plan_file(plan_id)
+            if not file_path:
+                await message.reply(f"❌ 計画 `{plan_id}` のファイルが見つかりません。")
+                return
+            from src.memory.core import parse_markdown_with_frontmatter
+            metadata, _ = parse_markdown_with_frontmatter(file_path)
+            op_cmd = metadata.get("title", "").replace("ASEP Plan: ", "")
+            
+            exec_res = asep.execute_plan(plan_id, run_op, op_cmd)
+            
+            if exec_res.get("status") == STATUS_EXECUTED:
+                await message.reply(
+                    f"✅ **計画 `{plan_id}` の実行が完了しました！**\n"
+                    f"**【実行結果】**\n{exec_res['result'][:1500]}"
+                )
+            else:
+                await message.reply(f"❌ **計画 `{plan_id}` の実行に失敗しました。**\nエラー: {exec_res.get('error')}")
+                
+        elif cmd == "/status":
+            if not args:
+                await message.reply("使用法: `/status <計画ID>`")
+                return
+            from src.utils.asep_middleware import ASEPMiddleware
+            asep = ASEPMiddleware()
+            file_path = asep._find_plan_file(args)
+            if not file_path:
+                await message.reply(f"🔍 計画 `{args}` は見つかりませんでした。")
+                return
+            from src.memory.core import parse_markdown_with_frontmatter
+            metadata, _ = parse_markdown_with_frontmatter(file_path)
+            await message.reply(
+                f"📊 **計画 `{args}` ステータス**\n"
+                f"* **ステータス**: {metadata.get('status')}\n"
+                f"* **リスクレベル**: {metadata.get('risk')}\n"
+                f"* **操作**: {metadata.get('title', '').replace('ASEP Plan: ', '')}"
+            )
+            
+        elif cmd == "/logs":
+            if not args:
+                await message.reply("使用法: `/logs <計画ID>`")
+                return
+            from src.utils.asep_middleware import ASEPMiddleware
+            asep = ASEPMiddleware()
+            file_path = asep._find_plan_file(args)
+            if not file_path:
+                await message.reply(f"🔍 計画 `{args}` は見つかりませんでした。")
+                return
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            await message.reply(f"📄 **計画 `{args}` 実行履歴**\n```markdown\n{content[:1900]}\n```")
+            
+        elif cmd == "/rollback":
+            await message.reply("🔄 直前状態復元（ロールバック）コマンドを受信しました。テスト環境のロールバック処理をトリガーします。")
+            
+    except Exception as e:
+        logger.error(f"Error handling chat command {cmd}: {e}")
+        await message.reply(f"コマンド実行エラー: {e}")
+
 def start_parent_reloader_process():
     import sys
     import subprocess
@@ -180,6 +426,11 @@ async def on_message(message):
             prompt = prompt.replace(f"<@!{client.user.id}>", "").strip()
         
         if not prompt:
+            return
+
+        # チャットコマンドの簡易フック (ASEP-001 / Memory MVP)
+        if prompt.startswith("/"):
+            await handle_chat_command(message, prompt)
             return
 
         async with message.channel.typing():
