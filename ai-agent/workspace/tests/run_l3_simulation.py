@@ -16,7 +16,8 @@ AGENT_URL = "http://localhost:5001/healthz"
 AGENT_FAIL_URL = "http://localhost:5001/healthz/fail"
 
 def run_cmd(cmd):
-    return subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    # stdout と stderr をマージして取得する
+    return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
 def get_sha256(filepath):
     h = hashlib.sha256()
@@ -70,9 +71,14 @@ def main():
     print("[L3 Sim] Starting test environment via docker compose...")
     res = run_cmd(f"docker compose -f {COMPOSE_FILE} up -d --build")
     if res.returncode != 0:
-        print(f"[L3 Sim] Error starting containers: {res.stderr}")
+        print(f"[L3 Sim] Error starting containers: {res.stdout}")
+        evidence.append(f"Error starting containers: {res.stdout}")
+        # 証拠保存して終了
+        with open(EVIDENCE_FILE, "w") as f:
+            f.write("\n".join(evidence))
         return False
         
+    success = False
     try:
         # 3. 起動完了 (healthy: 200) 待ち
         print("[L3 Sim] Waiting for ai-agent to become healthy...")
@@ -92,6 +98,10 @@ def main():
         
         if not healthy:
             print("[L3 Sim] Timeout waiting for healthy state.")
+            evidence.append("Timeout waiting for healthy state.")
+            agent_logs = run_cmd("docker logs kanon-test-agent-core").stdout
+            evidence.append("--- Agent Logs ---")
+            evidence.append(agent_logs)
             return False
             
         # monitor コンテナの初期 LKG 保存時間を確保
@@ -112,6 +122,7 @@ def main():
                     print("[L3 Sim] Simulated failure state has been set on agent.")
         except Exception as e:
             print(f"[L3 Sim] Failed to trigger simulated failure: {e}")
+            evidence.append(f"Failed to trigger simulated failure: {e}")
             return False
             
         # 5. monitor がロールバック処理を完了するまで待つ
@@ -127,6 +138,10 @@ def main():
         
         if not rollback_detected:
             print("[L3 Sim] Timeout waiting for monitor rollback logs.")
+            evidence.append("Timeout waiting for monitor rollback logs.")
+            monitor_logs = run_cmd("docker logs kanon-test-monitor").stdout
+            evidence.append("--- Monitor Logs ---")
+            evidence.append(monitor_logs)
             return False
 
         # ロールバック直後の状態を記録
@@ -141,7 +156,7 @@ def main():
         evidence.append(monitor_logs)
         evidence.append("")
 
-        # 4. Flask autoreloaderのログ (ロールバック後直後)
+        # 4. Flask autoreloader of agent-core logs (Pre-Touch)
         agent_logs_pre = run_cmd("docker logs kanon-test-agent-core").stdout
         evidence.append("--- 4. Agent Logs (Pre-Touch) ---")
         evidence.append(agent_logs_pre)
@@ -212,20 +227,25 @@ def main():
         evidence.append(f"\nHypothesis Verification Result: {'SUCCESS' if success else 'FAILED'}")
         evidence.append("==========================================")
         
-        # 証拠ファイル保存
-        evidence_text = "\n".join(evidence)
-        with open(EVIDENCE_FILE, "w") as f:
-            f.write(evidence_text)
-        print(f"[L3 Sim] Evidence file written to {EVIDENCE_FILE}")
-        
         # アサーション失敗時はアノテーションに埋め込むため例外
         if not success:
+            # 既に evidence_text 用のテキストを構築しておく
+            evidence_text = "\n".join(evidence)
             raise AssertionError(f"L3 Simulation validation failed. A/B test failure.\n{evidence_text[:1000]}")
             
         print("[L3 Sim] Simulation completed SUCCESSFULLY!")
         return True
         
     finally:
+        # 証拠ファイル保存 (早期エラー時も必ず保存する)
+        try:
+            evidence_text = "\n".join(evidence)
+            with open(EVIDENCE_FILE, "w") as f:
+                f.write(evidence_text)
+            print(f"[L3 Sim] Evidence file written to {EVIDENCE_FILE}")
+        except Exception as e:
+            print(f"[L3 Sim] Failed to write evidence file in finally: {e}")
+
         # クリーンアップ
         print("[L3 Sim] Cleaning up test containers...")
         run_cmd(f"docker compose -f {COMPOSE_FILE} down -v")
