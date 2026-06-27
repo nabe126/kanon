@@ -127,6 +127,16 @@ def execute_rollback() -> bool:
             
         shutil.copytree(lkg_path, SRC_DIR)
         print(f"[Monitor] Restored: {os.path.basename(lkg_path)} -> src/")
+        
+        # 復元した Python ファイルのタイムスタンプを現在時刻に更新 (touch) してオートリロードをトリガー
+        for root, _, files in os.walk(SRC_DIR):
+            for file in files:
+                if file.endswith(".py"):
+                    path = os.path.join(root, file)
+                    try:
+                        os.utime(path, None)
+                    except Exception as e:
+                        print(f"[Monitor] Failed to touch {file}: {e}")
             
         # Dockerコンテナの再起動を実行
         print(f"[Monitor] Restarting Docker container: {CONTAINER_NAME}")

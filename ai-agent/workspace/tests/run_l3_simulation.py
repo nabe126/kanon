@@ -61,7 +61,7 @@ def main():
     evidence.append("=== L3 Integration Simulation Evidence ===")
     evidence.append(f"Time: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
     
-    print("[L3 Sim] Starting L3 integration simulation (Evidence Gathering Mode)...")
+    print("[L3 Sim] Starting L3 integration simulation (Observation Mode)...")
     
     # 1. 前回のクリーンアップ
     print("[L3 Sim] Cleaning up previous containers...")
@@ -156,49 +156,16 @@ def main():
         evidence.append(monitor_logs)
         evidence.append("")
 
-        # 4. Flask autoreloaderのログ (ロールバック後直後)
+        # 4. Flask autoreloaderのログ (ロールバック後)
         agent_logs_pre = run_cmd("docker logs kanon-test-agent-core").stdout
-        evidence.append("--- 4. Agent Logs (Pre-Touch) ---")
+        evidence.append("--- 4. Agent Logs (Post-Rollback / Pre-Recovery) ---")
         evidence.append(agent_logs_pre)
         evidence.append("")
 
-        # 5. ロールバック後も500になる直接理由の確認（A側：touch前）
-        print("[L3 Sim] Verifying healthy recovery (Touch-A)...")
-        time.sleep(5) # リロードがあれば完了している時間を確保
-        try:
-            with urllib.request.urlopen(AGENT_URL, timeout=3) as resp:
-                resp_code = resp.status
-                resp_body = resp.read().decode('utf-8')
-        except urllib.error.HTTPError as e:
-            resp_code = e.code
-            resp_body = e.read().decode('utf-8')
-        except Exception as e:
-            resp_code = "Error"
-            resp_body = str(e)
-            
-        evidence.append("--- 5. Health Check Response (Pre-Touch / Touch-A) ---")
-        evidence.append(f"HTTP Status Code: {resp_code}")
-        evidence.append(f"Response Body: {resp_body}")
-        evidence.append("")
-
-        # A/B 比較アサーション (A側：touch前は 500 であること)
-        is_touch_a_500 = (resp_code == 500)
-        evidence.append(f"Verification [A] (Should be 500 error): {'PASSED' if is_touch_a_500 else 'FAILED'}")
-        
-        # 6. touch の追加による B 側検証の実行
-        print("[L3 Sim] Executing touch to trigger autoreload (Touch-B)...")
-        # ホスト側からの touch は root 所有ファイルのため Permission denied になる。
-        # docker exec を使ってコンテナ内（root）で touch を実行し、権限問題を回避する。
-        res_touch = run_cmd("docker exec kanon-test-agent-core touch /workspace/src/discord_agent.py")
-        if res_touch.returncode == 0:
-            evidence.append("Executed touch successfully via docker exec.")
-        else:
-            evidence.append(f"Failed to touch via docker exec: {res_touch.stdout}")
-            
-        # touch後、Flask オートリロードによる復帰を待つ (最大15秒)
+        # 5. ロールバック後の自動復旧監視 (monitorによるtouch ➔ オートリロード復旧)
+        print("[L3 Sim] Observing auto-recovery after rollback...")
         recovered = False
-        print("[L3 Sim] Observing recovery after touch...")
-        for i in range(10):
+        for i in range(15):
             time.sleep(2)
             try:
                 with urllib.request.urlopen(AGENT_URL, timeout=3) as resp:
@@ -206,29 +173,28 @@ def main():
                         data = json.loads(resp.read().decode('utf-8'))
                         if data.get("status") == "healthy":
                             recovered = True
-                            print(f"[L3 Sim] ai-agent recovered successfully to 200 OK after touch!")
+                            print(f"[L3 Sim] ai-agent successfully recovered (200 OK)!")
                             break
             except Exception:
                 pass
                 
-        # 6. Flask autoreloaderのログ (ロールバック後＋touch後)
+        # 6. オートリロード復帰後の最終ログ
         agent_logs_post = run_cmd("docker logs kanon-test-agent-core").stdout
-        evidence.append("\n--- 6. Agent Logs (Post-Touch) ---")
+        evidence.append("\n--- 6. Agent Logs (Post-Recovery) ---")
         evidence.append(agent_logs_post)
         evidence.append("")
         
-        is_touch_b_200 = recovered
-        evidence.append(f"Verification [B] (Should be 200 healthy): {'PASSED' if is_touch_b_200 else 'FAILED'}")
+        success = recovered
+        evidence.append(f"Auto-Recovery Verification: {'PASSED' if success else 'FAILED'}")
         
         # 最終判定
-        success = is_touch_a_500 and is_touch_b_200
-        evidence.append(f"\nHypothesis Verification Result: {'SUCCESS' if success else 'FAILED'}")
+        evidence.append(f"\nSimulation Result: {'SUCCESS' if success else 'FAILED'}")
         evidence.append("==========================================")
         
-        # アサーション失敗時はアノテーションに埋め込むため例外
+        # アサーション失敗時は例外
         if not success:
             evidence_text = "\n".join(evidence)
-            raise AssertionError(f"L3 Simulation validation failed. A/B test failure.\n{evidence_text[:1000]}")
+            raise AssertionError(f"L3 Simulation validation failed. Auto-recovery failure.\n{evidence_text[:1000]}")
             
         print("[L3 Sim] Simulation completed SUCCESSFULLY!")
         return True
