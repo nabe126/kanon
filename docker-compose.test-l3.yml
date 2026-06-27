@@ -8,6 +8,7 @@ services:
     container_name: kanon-test-agent-core
     environment:
       - KANON_TEST_TRIGGER=true
+      - PYTHONUNBUFFERED=1
     ports:
       - "5001:5000"
     volumes:
@@ -23,6 +24,7 @@ services:
       - KANON_HEALTHZ_URL=http://ai-agent:5000/healthz
       - KANON_CHECK_INTERVAL=2
       - KANON_MAX_FAILURES=3
+      - PYTHONUNBUFFERED=1
     volumes:
       - ./ai-agent/workspace:/ai-agent/workspace
       - ./controller:/controller

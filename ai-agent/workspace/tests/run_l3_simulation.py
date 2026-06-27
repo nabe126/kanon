@@ -83,7 +83,7 @@ def main():
         # 3. 起動完了 (healthy: 200) 待ち
         print("[L3 Sim] Waiting for ai-agent to become healthy...")
         healthy = False
-        for _ in range(15):
+        for _ in range(25):
             time.sleep(2)
             try:
                 with urllib.request.urlopen(AGENT_URL, timeout=3) as resp:
@@ -128,7 +128,7 @@ def main():
         # 5. monitor がロールバック処理を完了するまで待つ
         print("[L3 Sim] Waiting for monitor.py to perform rollback...")
         rollback_detected = False
-        for _ in range(20):
+        for _ in range(25):
             time.sleep(2)
             monitor_logs = run_cmd("docker logs kanon-test-monitor").stdout
             if "Restored: snapshot_" in monitor_logs or "Rollback failed." in monitor_logs:
@@ -140,7 +140,7 @@ def main():
             print("[L3 Sim] Timeout waiting for monitor rollback logs.")
             evidence.append("Timeout waiting for monitor rollback logs.")
             monitor_logs = run_cmd("docker logs kanon-test-monitor").stdout
-            evidence.append("--- Monitor Logs ---")
+            evidence.append("--- Monitor Logs (Timeout) ---")
             evidence.append(monitor_logs)
             return False
 
@@ -156,7 +156,7 @@ def main():
         evidence.append(monitor_logs)
         evidence.append("")
 
-        # 4. Flask autoreloader of agent-core logs (Pre-Touch)
+        # 4. Flask autoreloaderのログ (ロールバック後直後)
         agent_logs_pre = run_cmd("docker logs kanon-test-agent-core").stdout
         evidence.append("--- 4. Agent Logs (Pre-Touch) ---")
         evidence.append(agent_logs_pre)
@@ -229,7 +229,6 @@ def main():
         
         # アサーション失敗時はアノテーションに埋め込むため例外
         if not success:
-            # 既に evidence_text 用のテキストを構築しておく
             evidence_text = "\n".join(evidence)
             raise AssertionError(f"L3 Simulation validation failed. A/B test failure.\n{evidence_text[:1000]}")
             
@@ -237,8 +236,12 @@ def main():
         return True
         
     finally:
-        # 証拠ファイル保存 (早期エラー時も必ず保存する)
+        # コンテナ状態も証拠に含める
         try:
+            ps_out = run_cmd("docker ps -a").stdout
+            evidence.append("--- Docker PS State (Finally) ---")
+            evidence.append(ps_out)
+            
             evidence_text = "\n".join(evidence)
             with open(EVIDENCE_FILE, "w") as f:
                 f.write(evidence_text)
