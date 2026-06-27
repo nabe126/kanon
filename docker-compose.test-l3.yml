@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  ai-agent:
+    build:
+      context: ./ai-agent
+      dockerfile: Dockerfile
+    container_name: kanon-test-agent-core
+    environment:
+      - KANON_TEST_TRIGGER=true
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./ai-agent/workspace:/workspace
+
+  monitor:
+    build:
+      context: .
+      dockerfile: controller/Dockerfile.monitor
+    container_name: kanon-test-monitor
+    environment:
+      - KANON_CONTAINER_NAME=kanon-test-agent-core
+      - KANON_HEALTHZ_URL=http://ai-agent:5000/healthz
+      - KANON_CHECK_INTERVAL=2
+      - KANON_MAX_FAILURES=3
+    volumes:
+      - ./ai-agent/workspace:/ai-agent/workspace
+      - ./controller:/controller
+    depends_on:
+      - ai-agent

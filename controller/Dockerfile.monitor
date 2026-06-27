@@ -1,0 +1,6 @@
+FROM python:3.11-slim
+
+WORKDIR /workspace
+
+# 特権なしのプレーンな python 監視コンテナ
+CMD ["python3", "/controller/monitor.py"]
