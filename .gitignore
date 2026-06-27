@@ -16,3 +16,7 @@ __pycache__/
 .venv/
 venv/
 ENV/
+
+# Kanon state and backups
+ai-agent/workspace/state/
+ai-agent/workspace/backups/
