@@ -105,5 +105,15 @@
   * **Phase 3 (Makefile統合)**: [Makefile](file:///Users/nabe/src/github.com/nabe126/kanon/Makefile) を作成し、`make test-l3` で自動テストが走るように統合。
   * **Phase 4 (CI化)**: [.github/workflows/test-l3.yml](file:///Users/nabe/src/github.com/nabe126/kanon/.github/workflows/test-l3.yml) を作成し、GitHub Actions 上で全 L3 結合テストが PR/Push ごとに自動で実行される仕組みを構築。
 
+---
 
-
+## 12. 📝 追記: 2026-06-27T09:40:00+09:00 - L3 自動テスト検証結果とCI失敗の深層分析
+* **目的**:
+  * 構築したテスト環境でのローカル実行および CI (GitHub Actions) 実行を行い、終了コードと実行ログを収集。
+* **検証結果**:
+  * **ローカル (Mac)**: `docker compose config` / `make test-l3` はホストに Docker が未導入のためエラー終了 (Exit Code 127/2)。
+  * **GitHub Actions (CI)**: `Run L3 Integration Simulation` ステップでタイムアウト失敗 (Exit Code 2/1、実行時間約67秒)。
+* **失敗原因の特定**:
+  * `monitor.py` が LKG バックアップから `src/` へファイルを書き戻す際、`shutil.copytree` がファイルタイムスタンプ (`mtime`) を過去の状態で保持したままコピーするため、Flask (Werkzeug) オートリローダーがファイルの変更を検知せず再起動しなかった。結果として、メモリ上の障害状態がリセットされずタイムアウトした。
+* **対策案**:
+  * `monitor.py` 内でファイルを復元した直後に、すべての Python ファイルを `os.utime` などで更新 (`touch`) してオートリロードを確実にトリガーさせる。
