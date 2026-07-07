@@ -6,7 +6,6 @@ services:
       - "5000:5000"
     volumes:
       - ./workspace:/workspace
-      - /var/run/docker.sock:/var/run/docker.sock
     working_dir: /workspace
     env_file:
       - ./secrets/.env
