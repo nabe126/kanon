@@ -6,6 +6,8 @@ services:
       - "5000:5000"
     volumes:
       - ./workspace:/workspace
+      - ../memory:/workspace/memory
+      - ../docs:/workspace/docs
     working_dir: /workspace
     env_file:
       - ./secrets/.env
