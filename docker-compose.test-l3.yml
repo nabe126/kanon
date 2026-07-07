@@ -28,5 +28,6 @@ services:
     volumes:
       - ./ai-agent/workspace:/ai-agent/workspace
       - ./controller:/controller
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - ai-agent
