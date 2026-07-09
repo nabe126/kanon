@@ -462,18 +462,7 @@ async def on_message(message):
 
                 # APIクライアント初期化と推論
                 api_key = os.getenv("GEMINI_API_KEY")
-                if not api_key:
-                    logger.error("GEMINI_API_KEY is not set.")
-                    response_text = "エラー: GEMINI_API_KEY 環境変数が設定されていません。"
-                else:
-                    from google import genai
-                    genai_client = genai.Client(api_key=api_key)
-                    # 履歴付きで推論を実行
-                    response = genai_client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=contents
-                    )
-                    response_text = response.text or "(空の応答)"
+                response_text = await generate_agent_reply(contents, api_key=api_key)
 
                 # Botの応答を履歴に追加
                 history.add_message(history_key, "model", response_text)
@@ -484,6 +473,27 @@ async def on_message(message):
             except Exception as e:
                 logger.error(f"Error while processing message and calling Gemini API: {e}")
                 await message.reply(f"内部エラーが発生しました: {e}")
+
+async def generate_agent_reply(contents: list, api_key: str = None, genai_client = None) -> str:
+    """Gemini API を呼び出して応答テキストを生成します（テスト用にクライアントをモック注入可能）"""
+    if not api_key and not genai_client:
+        logger.error("GEMINI_API_KEY is not set and genai_client is not provided.")
+        return "エラー: GEMINI_API_KEY 環境変数が設定されていません。"
+
+    try:
+        if not genai_client:
+            from google import genai
+            genai_client = genai.Client(api_key=api_key)
+
+        # 履歴付きで推論を実行
+        response = genai_client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=contents
+        )
+        return response.text or "(空の応答)"
+    except Exception as e:
+        logger.error(f"Failed to generate content from Gemini API: {e}")
+        raise e
 
 async def run_mock_loop():
     """本物のDiscordトークンがない、またはモック動作指定時のループ"""

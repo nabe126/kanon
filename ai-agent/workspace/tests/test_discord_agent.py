@@ -51,3 +51,30 @@ async def test_run_mock_loop() -> None:
         await task
     except asyncio.CancelledError:
         pass  # 正常にキャンセルされればパス
+
+from unittest.mock import MagicMock
+from src.discord_agent import generate_agent_reply
+
+@pytest.mark.anyio
+async def test_generate_agent_reply_success() -> None:
+    """generate_agent_reply がモックされたクライアントから正常に応答を返すことのテスト"""
+    mock_client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.text = "Hello, this is a mock reply."
+    mock_client.models.generate_content.return_value = mock_response
+
+    contents = [{"role": "user", "content": "hello"}]
+    reply = await generate_agent_reply(contents, genai_client=mock_client)
+
+    assert reply == "Hello, this is a mock reply."
+    mock_client.models.generate_content.assert_called_once_with(
+        model='gemini-2.5-flash',
+        contents=contents
+    )
+
+@pytest.mark.anyio
+async def test_generate_agent_reply_missing_key() -> None:
+    """APIキーもクライアントも指定されていない場合、エラーメッセージを返すことのテスト"""
+    contents = [{"role": "user", "content": "hello"}]
+    reply = await generate_agent_reply(contents, api_key=None, genai_client=None)
+    assert "エラー: GEMINI_API_KEY" in reply
