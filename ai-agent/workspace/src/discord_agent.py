@@ -6,6 +6,8 @@ from flask import Flask, jsonify
 from threading import Thread
 import discord
 from google.genai import types
+from google.genai.errors import APIError, ServerError
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
 
 # 自作ユーティリティのインポート
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -474,8 +476,22 @@ async def on_message(message):
                 logger.error(f"Error while processing message and calling Gemini API: {e}")
                 await message.reply(f"内部エラーが発生しました: {e}")
 
+def _is_transient_error(exception):
+    """一過性のエラー（5xx系、または429レートリミットなど）であるか判定します"""
+    if isinstance(exception, ServerError):
+        return True
+    if isinstance(exception, APIError):
+        return exception.code in [429, 503, 504]
+    return False
+
+@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    retry=retry_if_exception(_is_transient_error),
+    reraise=True
+)
 async def generate_agent_reply(contents: list, api_key: str = None, genai_client = None) -> str:
-    """Gemini API を呼び出して応答テキストを生成します（テスト用にクライアントをモック注入可能）"""
+    """Gemini API を呼び出して応答テキストを生成します（テスト用にクライアントをモック注入可能。一過性エラー時は自動リトライします）"""
     if not api_key and not genai_client:
         logger.error("GEMINI_API_KEY is not set and genai_client is not provided.")
         return "エラー: GEMINI_API_KEY 環境変数が設定されていません。"

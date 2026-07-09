@@ -78,3 +78,38 @@ async def test_generate_agent_reply_missing_key() -> None:
     contents = [{"role": "user", "content": "hello"}]
     reply = await generate_agent_reply(contents, api_key=None, genai_client=None)
     assert "エラー: GEMINI_API_KEY" in reply
+
+from google.genai.errors import ServerError
+import tenacity
+
+@pytest.mark.anyio
+async def test_generate_agent_reply_retry_success(monkeypatch) -> None:
+    """一過性のエラー（ServerError）が起きた後、リトライして最終的に成功することのテスト"""
+    mock_client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.text = "Success after retry."
+    
+    err = ServerError(503, {"error": {"message": "Service Unavailable", "status": "UNAVAILABLE"}})
+    mock_client.models.generate_content.side_effect = [err, mock_response]
+
+    contents = [{"role": "user", "content": "hello"}]
+    monkeypatch.setattr(generate_agent_reply.retry, "wait", tenacity.wait_none())
+
+    reply = await generate_agent_reply(contents, genai_client=mock_client)
+    assert reply == "Success after retry."
+    assert mock_client.models.generate_content.call_count == 2
+
+@pytest.mark.anyio
+async def test_generate_agent_reply_retry_failure(monkeypatch) -> None:
+    """一過性エラーが5回連続して発生した場合、最終的に例外が送出されることのテスト"""
+    mock_client = MagicMock()
+    err = ServerError(503, {"error": {"message": "Service Unavailable", "status": "UNAVAILABLE"}})
+    mock_client.models.generate_content.side_effect = [err] * 6
+
+    contents = [{"role": "user", "content": "hello"}]
+    monkeypatch.setattr(generate_agent_reply.retry, "wait", tenacity.wait_none())
+
+    with pytest.raises(ServerError):
+        await generate_agent_reply(contents, genai_client=mock_client)
+    
+    assert mock_client.models.generate_content.call_count == 5
