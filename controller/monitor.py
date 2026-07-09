@@ -4,6 +4,8 @@ import shutil
 import urllib.request
 import subprocess
 import json
+import socket
+import http.client
 
 # 設定パラメータ（環境変数からの取得、フォールバック付き）
 HEALTHZ_URL = os.getenv("KANON_HEALTHZ_URL", "http://localhost:5000/healthz")
@@ -138,18 +140,52 @@ def execute_rollback() -> bool:
                     except Exception as e:
                         print(f"[Monitor] Failed to touch {file}: {e}")
             
-        # Dockerコンテナの再起動を実行 (環境変数PATHに依存しないよう絶対パスを指定)
-        print(f"[Monitor] Restarting Docker container: {CONTAINER_NAME}")
-        result = subprocess.run(["/usr/bin/docker", "restart", CONTAINER_NAME], capture_output=True, text=True)
-        if result.returncode == 0:
-            print("[Monitor] Docker container restarted successfully.")
+        # UNIXドメインソケット経由で Docker API を直接叩いて再起動を実行します (バイナリ不要)
+        print(f"[Monitor] Restarting Docker container via API: {CONTAINER_NAME}")
+        if restart_container_via_api(CONTAINER_NAME):
             return True
         else:
-            print(f"[Monitor] Failed to restart container via Docker socket: {result.stderr}")
+            print("[Monitor] Failed to restart container via Docker API.")
     except Exception as e:
         print(f"[Monitor] Error during rollback execution: {e}")
         
     return False
+
+class UnixHTTPConnection(http.client.HTTPConnection):
+    def __init__(self, unix_socket_path):
+        super().__init__("localhost")
+        self.unix_socket_path = unix_socket_path
+
+    def connect(self):
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.sock.connect(self.unix_socket_path)
+
+def restart_container_via_api(container_name: str) -> bool:
+    """UNIXドメインソケット経由で Docker API を直接叩き、コンテナを再起動します。"""
+    socket_path = "/var/run/docker.sock"
+    if not os.path.exists(socket_path):
+        print(f"[Monitor] Error: {socket_path} does not exist. Cannot communicate with Docker daemon.")
+        return False
+
+    conn = None
+    try:
+        conn = UnixHTTPConnection(socket_path)
+        conn.request("POST", f"/containers/{container_name}/restart")
+        response = conn.getresponse()
+        # Docker API の restart は成功時に 204 (No Content) を返します
+        if response.status in [200, 204]:
+            print(f"[Monitor] Docker container restarted successfully via API.")
+            return True
+        else:
+            body = response.read().decode('utf-8', errors='ignore')
+            print(f"[Monitor] Failed to restart container via API (HTTP {response.status}): {body}")
+            return False
+    except Exception as e:
+        print(f"[Monitor] Error calling Docker API: {e}")
+        return False
+    finally:
+        if conn:
+            conn.close()
 
 def main():
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] [Monitor] Starting Kanon Rollback Monitor loop...")

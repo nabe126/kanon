@@ -91,8 +91,8 @@ def test_check_health_failed(mock_urlopen):
     mock_urlopen.side_effect = Exception("Connection Refused")
     assert monitor.check_health() is False
 
-@patch("subprocess.run")
-def test_execute_rollback(mock_run):
+@patch("monitor.restart_container_via_api")
+def test_execute_rollback(mock_restart_api):
     """ロールバック実行時に、現在の異常コードが退避され、LKGから復元されるかをシミュレート検証します。"""
     # LKGを事前に登録
     good_snap = monitor.create_snapshot()
@@ -102,10 +102,8 @@ def test_execute_rollback(mock_run):
     with open(os.path.join(monitor.SRC_DIR, "discord_agent.py"), "w") as f:
         f.write("# Bad broken code\n")
         
-    # サブプロセスの戻り値をモック
-    mock_res = MagicMock()
-    mock_res.returncode = 0
-    mock_run.return_value = mock_res
+    # Docker API 再起動呼び出しをモック
+    mock_restart_api.return_value = True
     
     # ロールバック実行
     success = monitor.execute_rollback()
