@@ -138,9 +138,9 @@ def execute_rollback() -> bool:
                     except Exception as e:
                         print(f"[Monitor] Failed to touch {file}: {e}")
             
-        # Dockerコンテナの再起動を実行
+        # Dockerコンテナの再起動を実行 (環境変数PATHに依存しないよう絶対パスを指定)
         print(f"[Monitor] Restarting Docker container: {CONTAINER_NAME}")
-        result = subprocess.run(["docker", "restart", CONTAINER_NAME], capture_output=True, text=True)
+        result = subprocess.run(["/usr/bin/docker", "restart", CONTAINER_NAME], capture_output=True, text=True)
         if result.returncode == 0:
             print("[Monitor] Docker container restarted successfully.")
             return True
