@@ -61,16 +61,16 @@ async def test_generate_agent_reply_success() -> None:
     mock_client = MagicMock()
     mock_response = MagicMock()
     mock_response.text = "Hello, this is a mock reply."
+    mock_response.function_calls = None
     mock_client.models.generate_content.return_value = mock_response
 
     contents = [{"role": "user", "content": "hello"}]
     reply = await generate_agent_reply(contents, genai_client=mock_client)
 
     assert reply == "Hello, this is a mock reply."
-    mock_client.models.generate_content.assert_called_once_with(
-        model='gemini-2.5-flash',
-        contents=contents
-    )
+    assert mock_client.models.generate_content.call_count == 1
+    call_kwargs = mock_client.models.generate_content.call_args[1]
+    assert call_kwargs["model"] == 'gemini-2.5-flash'
 
 @pytest.mark.anyio
 async def test_generate_agent_reply_missing_key() -> None:
@@ -88,6 +88,7 @@ async def test_generate_agent_reply_retry_success(monkeypatch) -> None:
     mock_client = MagicMock()
     mock_response = MagicMock()
     mock_response.text = "Success after retry."
+    mock_response.function_calls = None
     
     err = ServerError(503, {"error": {"message": "Service Unavailable", "status": "UNAVAILABLE"}})
     mock_client.models.generate_content.side_effect = [err, mock_response]

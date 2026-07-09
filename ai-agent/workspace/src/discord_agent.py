@@ -2,7 +2,7 @@ import os
 import sys
 import time
 import asyncio
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from threading import Thread
 import discord
 from google.genai import types
@@ -173,6 +173,196 @@ def api_asep_approve():
     except Exception as e:
         logger.error(f"Error in api_asep_approve: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# --- Discord UI Component Definitions (Buttons & Modals) ---
+
+class MemoryRememberModal(discord.ui.Modal, title="🧠 記憶を保存 (Remember)"):
+    topic_input = discord.ui.TextInput(
+        label="トピック（検索用キーワード）",
+        placeholder="例: 会議メモ、お昼ご飯、プロジェクト目標",
+        max_length=100,
+        required=True
+    )
+    content_input = discord.ui.TextInput(
+        label="記憶する内容",
+        style=discord.TextStyle.paragraph,
+        placeholder="例: 次回の打ち合わせは金曜日の15時など",
+        max_length=2000,
+        required=True
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        topic = self.topic_input.value.strip()
+        content = self.content_input.value.strip()
+        
+        try:
+            from src.memory.core import remember
+            if remember(topic, content):
+                await interaction.followup.send(
+                    f"✅ **記憶を保存しました！**\n* **トピック**: `{topic}`\n* **内容**:\n{content}",
+                    ephemeral=True
+                )
+            else:
+                await interaction.followup.send("❌ 記憶の保存に失敗しました。", ephemeral=True)
+        except Exception as e:
+            logger.error(f"Error in MemoryRememberModal on_submit: {e}")
+            await interaction.followup.send(f"❌ エラーが発生しました: {e}", ephemeral=True)
+
+class MemoryRecallModal(discord.ui.Modal, title="🔍 記憶を検索 (Recall)"):
+    query_input = discord.ui.TextInput(
+        label="検索キーワード",
+        placeholder="例: 会議、お昼",
+        max_length=100,
+        required=True
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        query = self.query_input.value.strip()
+        
+        try:
+            from src.memory.core import recall
+            res = recall(query)
+            if res.get("status") == "success":
+                await interaction.followup.send(
+                    f"🧠 **記憶が見つかりました！** (レベル: {res.get('level')})\n"
+                    f"* **トピック**: `{res.get('topic')}`\n"
+                    f"**【内容】**\n{res.get('content')}",
+                    ephemeral=True
+                )
+            else:
+                await interaction.followup.send(f"🔍 キーワード `{query}` に一致する記憶は見つかりませんでした。", ephemeral=True)
+        except Exception as e:
+            logger.error(f"Error in MemoryRecallModal on_submit: {e}")
+            await interaction.followup.send(f"❌ エラーが発生しました: {e}", ephemeral=True)
+
+class ASEPPlanModal(discord.ui.Modal, title="📋 実行計画の作成 (ASEP Plan)"):
+    operation_input = discord.ui.TextInput(
+        label="実行したい操作 (コマンド等)",
+        placeholder="例: make status, ls -la",
+        max_length=500,
+        required=True
+    )
+    risk_input = discord.ui.TextInput(
+        label="リスクレベル",
+        default="L2",
+        placeholder="L1 / L2 / L3",
+        max_length=10,
+        required=True
+    )
+    reason_input = discord.ui.TextInput(
+        label="計画起票の理由",
+        placeholder="例: システム稼働状態の確認",
+        max_length=200,
+        required=True
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        operation = self.operation_input.value.strip()
+        risk = self.risk_input.value.strip()
+        reason = self.reason_input.value.strip()
+        
+        try:
+            from src.utils.asep_middleware import ASEPMiddleware
+            asep = ASEPMiddleware()
+            plan = asep.create_plan(operation, risk, reason, f"Created via Discord UI by {interaction.user}")
+            if plan:
+                await interaction.followup.send(
+                    f"📋 **実行計画 (PLAN) を起票しました！**\n"
+                    f"* **計画ID**: `{plan['plan_id']}`\n"
+                    f"* **操作**: `{plan['operation']}`\n"
+                    f"* **リスクレベル**: `{plan['risk']}`\n"
+                    f"* **ステータス**: `{plan['status']}`\n\n"
+                    f"承認して実行するには、チャットで `/run {plan['plan_id']}` を入力してください。",
+                    ephemeral=True
+                )
+            else:
+                await interaction.followup.send("❌ 実行計画の作成に失敗しました。", ephemeral=True)
+        except Exception as e:
+            logger.error(f"Error in ASEPPlanModal on_submit: {e}")
+            await interaction.followup.send(f"❌ エラーが発生しました: {e}", ephemeral=True)
+
+class AgentMenuView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)  # タイムアウトなしで動作し続ける
+
+    @discord.ui.button(label="🧠 記憶を保存", style=discord.ButtonStyle.primary, custom_id="btn_remember")
+    async def btn_remember(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(MemoryRememberModal())
+
+    @discord.ui.button(label="🔍 記憶を検索", style=discord.ButtonStyle.secondary, custom_id="btn_recall")
+    async def btn_recall(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(MemoryRecallModal())
+
+    @discord.ui.button(label="📋 計画を作成", style=discord.ButtonStyle.success, custom_id="btn_plan")
+    async def btn_plan(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(ASEPPlanModal())
+
+class ASEPApproveView(discord.ui.View):
+    def __init__(self, plan_id: str):
+        super().__init__(timeout=180)  # 3分でタイムアウト
+        self.plan_id = plan_id
+
+    @discord.ui.button(label="✅ 承認 (YES)", style=discord.ButtonStyle.success, custom_id="asep_yes")
+    async def asep_yes(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        try:
+            from src.utils.asep_middleware import ASEPMiddleware
+            asep = ASEPMiddleware()
+            app_res = asep.approve_plan(self.plan_id, "YES")
+            if app_res.get("status") == "error":
+                await interaction.followup.send(f"❌ 承認に失敗しました: {app_res.get('message')}", ephemeral=True)
+                return
+
+            await interaction.followup.send(f"⚙️ 計画 `{self.plan_id}` の実行を開始します...", ephemeral=True)
+            
+            def run_op(command):
+                import subprocess
+                res = subprocess.run(command, shell=True, capture_output=True, text=True)
+                return f"STDOUT:\n{res.stdout}\n\nSTDERR:\n{res.stderr}"
+                
+            file_path = asep._find_plan_file(self.plan_id)
+            if not file_path:
+                await interaction.followup.send(f"❌ 計画 `{self.plan_id}` のファイルが見つかりません。", ephemeral=True)
+                return
+            from src.memory.core import parse_markdown_with_frontmatter
+            metadata, _ = parse_markdown_with_frontmatter(file_path)
+            op_cmd = metadata.get("title", "").replace("ASEP Plan: ", "")
+            
+            exec_res = asep.execute_plan(self.plan_id, run_op, op_cmd)
+            
+            if exec_res.get("status") == "Executed":
+                await interaction.channel.send(
+                    f"✅ **計画 `{self.plan_id}` の実行が完了しました！**\n"
+                    f"**【実行結果】**\n```\n{exec_res['result'][:1800]}\n```"
+                )
+            else:
+                await interaction.channel.send(f"❌ **計画 `{self.plan_id}` の実行に失敗しました。**\nエラー: {exec_res.get('error')}")
+            
+            self.stop()
+        except Exception as e:
+            logger.error(f"Error in ASEPApproveView asep_yes: {e}")
+            await interaction.followup.send(f"❌ エラーが発生しました: {e}", ephemeral=True)
+
+    @discord.ui.button(label="🛑 却下 (NO)", style=discord.ButtonStyle.danger, custom_id="asep_no")
+    async def asep_no(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        try:
+            from src.utils.asep_middleware import ASEPMiddleware
+            asep = ASEPMiddleware()
+            app_res = asep.approve_plan(self.plan_id, "NO")
+            if app_res.get("status") == "error":
+                await interaction.followup.send(f"❌ 却下処理に失敗しました: {app_res.get('message')}", ephemeral=True)
+                return
+            await interaction.followup.send(f"🛑 計画 `{self.plan_id}` を却下しました。", ephemeral=True)
+            self.stop()
+        except Exception as e:
+            logger.error(f"Error in ASEPApproveView asep_no: {e}")
+            await interaction.followup.send(f"❌ エラーが発生しました: {e}", ephemeral=True)
+
+# -----------------------------------------------------------
 
 async def handle_chat_command(message, command_str):
     parts = command_str.split(" ", 1)
@@ -430,6 +620,17 @@ async def on_message(message):
         if not prompt:
             return
 
+        # 対話型メニューのトリガー
+        if prompt.lower() in ["menu", "/menu", "メニュー", "help", "/help", "ヘルプ"]:
+            view = AgentMenuView()
+            await message.reply(
+                "🧠 **AI Agent コントロールメニュー**\n"
+                "以下のボタンをクリックすると、専用の入力フォームがポップアップして操作できます。\n"
+                "（テキストでの手動入力も引き続き可能です）",
+                view=view
+            )
+            return
+
         # チャットコマンドの簡易フック (ASEP-001 / Memory MVP)
         if prompt.startswith("/"):
             await handle_chat_command(message, prompt)
@@ -469,8 +670,19 @@ async def on_message(message):
                 # Botの応答を履歴に追加
                 history.add_message(history_key, "model", response_text)
                 
+                # 応答に計画ID（PLN-xxxx）が含まれる場合は、自動的に承認Viewを添付
+                import re
+                plan_match = re.search(r"PLN-\d{8}-\d{6}", response_text)
+                view = None
+                if plan_match:
+                    plan_id = plan_match.group(0)
+                    view = ASEPApproveView(plan_id)
+                
                 # Discordへ応答
-                await message.reply(response_text)
+                if view:
+                    await message.reply(response_text, view=view)
+                else:
+                    await message.reply(response_text)
                 
             except Exception as e:
                 logger.error(f"Error while processing message and calling Gemini API: {e}")
@@ -491,7 +703,7 @@ def _is_transient_error(exception):
     reraise=True
 )
 async def generate_agent_reply(contents: list, api_key: str = None, genai_client = None) -> str:
-    """Gemini API を呼び出して応答テキストを生成します（テスト用にクライアントをモック注入可能。一過性エラー時は自動リトライします）"""
+    """Gemini API を呼び出して応答テキストを生成します。自律エージェントとして開発用ツールを実行するループを持ちます。"""
     if not api_key and not genai_client:
         logger.error("GEMINI_API_KEY is not set and genai_client is not provided.")
         return "エラー: GEMINI_API_KEY 環境変数が設定されていません。"
@@ -501,12 +713,84 @@ async def generate_agent_reply(contents: list, api_key: str = None, genai_client
             from google import genai
             genai_client = genai.Client(api_key=api_key)
 
-        # 履歴付きで推論を実行
-        response = genai_client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=contents
+        # ツール関数のマッピング
+        from utils import agent_tools
+        tool_map = {
+            "list_dir": agent_tools.list_dir,
+            "grep_search": agent_tools.grep_search,
+            "read_file": agent_tools.read_file,
+            "replace_file_content": agent_tools.replace_file_content,
+            "write_to_file": agent_tools.write_to_file,
+            "request_command_execution": agent_tools.request_command_execution,
+        }
+        
+        tools = list(tool_map.values())
+        
+        system_instruction = (
+            "You are Kanon Arahabaki Agent (Antigravity), a powerful autonomous coding assistant.\n"
+            "You have access to tools that allow you to read and write files in the workspace, search code, and request command execution.\n"
+            "Your goal is to help the user with coding, refactoring, and debugging tasks.\n"
+            "When modifying files, always verify syntax and logic. To run tests or compile commands, use request_command_execution.\n"
+            "When executing commands, always request them via request_command_execution. Do not try to run them yourself without the tool.\n"
+            "Keep your responses concise and update the user on what you did."
         )
-        return response.text or "(空の応答)"
+
+        max_iterations = 8
+        for iteration in range(max_iterations):
+            config = types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                tools=tools
+            )
+            response = genai_client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=contents,
+                config=config
+            )
+            
+            # モデルのレスポンスを履歴に追加
+            if response.candidates and response.candidates[0].content:
+                model_content = response.candidates[0].content
+                contents.append(model_content)
+            else:
+                break
+
+            function_calls = response.function_calls
+            if not function_calls:
+                return response.text or "(空の応答)"
+
+            tool_responses = []
+            for function_call in function_calls:
+                name = function_call.name
+                args = function_call.args
+                
+                logger.info(f"[AgentLoop] Tool call: {name} with args {args}")
+                
+                if name in tool_map:
+                    try:
+                        result = tool_map[name](**args)
+                    except Exception as exec_err:
+                        result = f"Error executing tool {name}: {exec_err}"
+                else:
+                    result = f"Error: Tool {name} is not registered."
+
+                logger.info(f"[AgentLoop] Tool result: {result[:200]}")
+                
+                tool_responses.append(
+                    types.Part.from_function_response(
+                        name=name,
+                        response={"result": result}
+                    )
+                )
+
+            contents.append(
+                types.Content(
+                    role="tool",
+                    parts=tool_responses
+                )
+            )
+
+        return "警告: エージェントの自律実行ループの最大回数に達しました。ここまでの結果を報告します。"
+
     except Exception as e:
         logger.error(f"Failed to generate content from Gemini API: {e}")
         raise e
