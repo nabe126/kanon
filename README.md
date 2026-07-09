@@ -173,3 +173,28 @@ PYTHONPATH=ai-agent/workspace ai-agent/workspace/.venv/bin/python3 ai-agent/work
 * `ai-agent/secrets/.env` が存在する場合、`GEMINI_API_KEY` を含む環境変数が自動的にロードされ、実接続の対話が開始されます（存在しない場合は自動的にモック対話モードになります）。
 * CLI REPL 内で利用可能なコマンドは、起動後に `/help` を入力することで確認できます。
 
+---
+
+## 8. 🛠️ 実機運用およびトラブルシューティング
+
+実機（GPD WIN 3 / Ubuntu）環境でのコンテナ起動やトラブル対処は、ルートにある **`Makefile`** のコマンドとして自動化・簡略化されています。
+
+### クイックコマンド
+```bash
+# ヘルプと利用可能なコマンドの表示
+make help
+
+# コンテナのビルドおよび起動
+make up
+
+# コンテナの停止
+make down
+
+# ログの確認
+make logs
+```
+
+### トラブルシューティング
+ポートの競合、AppArmor によるコンテナ停止ブロック、ファイルの書き込み権限エラーなどに遭遇した場合は、以下のガイドを参照し、`Makefile` にて解消してください。
+* 📄 [Kanon 運用トラブルシューティングガイド](file:///Users/nabe/src/github.com/nabe126/kanon/docs/guides/troubleshooting.md)
+
