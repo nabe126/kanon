@@ -22,8 +22,8 @@
   - `Docker version 20.10.x` 以上がインストールされていること。
   - `Active: active (running)` と表示され、デーモンが稼働中であること。
 * **実際の確認結果**:
-  - `docker --version`: ___________________________________
-  - `systemctl status docker`: ___________________________________
+  - `docker --version`: `Docker version 29.1.3, build 29.1.3-0ubuntu4.1`
+  - `systemctl status docker`: `active (running) since Thu 2026-04-16 03:33:04 JST` (正常稼働中)
 
 ---
 
@@ -36,11 +36,11 @@
 * **期待される結果**:
   - `Docker Compose version v2.x.x` 以上の CLI プラグイン、または `docker-compose version 1.29.x` 以上が利用可能であること。
 * **実際の確認結果**:
-  - ___________________________________
+  - `Docker Compose version 2.40.3+ds1-0ubuntu1` (利用可能)
 
 ---
 
-### ③ Git checkout 状態の確認
+### ③ Git checkout 状態 of 確認
 * **目的**: 開発環境（M4 Mac）からプッシュされた最新のインフラ修正（`Sprint RM-Infra`）および `agent.py`（CLI REPL）が正しく適用されているか確認する。
 * **確認コマンド**:
   ```bash
@@ -52,8 +52,8 @@
   - `Your branch is up to date with 'origin/main'.` (または最新ブランチと同期していること)。
   - 最新のコミットログに `79191f6 fix(infra): mount memory/ and docs/ into agent container [RM-03]` およびそれ以降のコミットが含まれていること。
 * **実際の確認結果**:
-  - `git status`: ___________________________________
-  - `git log (HEAD)`: ___________________________________
+  - `git status`: `origin/main` と同期済み (git pull 実行完了)
+  - `git log (HEAD)`: `a1e16a8 (HEAD -> main, origin/main)` （`79191f6` 等が含まれていることを確認）
 
 ---
 
@@ -69,8 +69,8 @@
     - `GEMINI_API_KEY`
     - `DISCORD_BOT_TOKEN`
 * **実際の確認結果**:
-  - ファイル有無: [ ] 存在する / [ ] 存在しない
-  - パーミッション: ___________________________________
+  - ファイル有無: [x] 存在する / [ ] 存在しない
+  - パーミッション: `-rw-rw-r-- 1 nabe3 nabe3 146` (適切)
 
 ---
 
@@ -86,8 +86,8 @@
   - プロンプトに「こんにちは」と入力し、Gemini から日本語で正常に応答が返却されること。
   - `/exit` で正常終了すること。
 * **実際の確認結果**:
-  - ロード成否: [ ] 成功 / [ ] 失敗 (モックモード起動)
-  - 応答結果: ___________________________________
+  - ロード成否: [x] 成功 / [ ] 失敗 (モックモード起動)
+  - 応答結果: 最初はAPI高負荷による503一時エラーが発生したものの、再試行で正常に応答（「こんばんは、こんにちは！😊」等）し、/quitで正常終了したことを確認。
 
 ---
 
@@ -113,6 +113,6 @@
   - コンテナイメージのビルドおよび起動が正常終了し、`ai_agent_core` コンテナが `Up` 状態であること。
   - `docker logs` にエラーが出力されていないこと（モックモードまたは実トークンでの起動開始ログが出ていること）。
 * **実際の確認結果**:
-  - `config` 結果: [ ] 正常 / [ ] エラー有 (内容: ___________________)
-  - `docker ps` 状態: ___________________________________
-  - `docker logs` 特記事項: ___________________________________
+  - `config` 結果: [x] 正常 / [ ] エラー有 (内容: 構文解析は正常。--env-file指定によりKANON_TEST_TRIGGER以外の警告は解消)
+  - `docker ps` 状態: `ai_agent_core` は `Up` (正常起動を確認。ポート 5000 競合は docker-proxy の kill により解決)
+  - `docker logs` 特記事項: 正常に起動し、Discord クライアントへのログインまで完了。`docker compose down` 時に AppArmor に起因する停止エラーが発生したが、`aa-remove-unknown` を実行することで正常にクリーンアップ・停止できることを確認。
