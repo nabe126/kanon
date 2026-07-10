@@ -6,6 +6,7 @@ services:
       - "5000:5000"
     volumes:
       - ..:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
     working_dir: /workspace/ai-agent/workspace
     command: ["python3", "src/discord_agent.py"]
     env_file:
