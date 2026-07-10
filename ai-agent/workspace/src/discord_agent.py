@@ -671,12 +671,12 @@ async def on_message(message):
                 # Botの応答を履歴に追加
                 history.add_message(history_key, "model", response_text)
                 
-                # 応答に計画ID（PLN-xxxx）が含まれる場合は、自動的に承認Viewを添付
+                # 応答に計画ID（PLAN-xxxx）が含まれる場合は、自動的に承認Viewを添付
                 import re
-                plan_match = re.search(r"PLN-\d{8}-\d{6}", response_text)
+                plan_match = re.search(r"PLAN-[A-Za-z0-9]+", response_text, re.IGNORECASE)
                 view = None
                 if plan_match:
-                    plan_id = plan_match.group(0)
+                    plan_id = plan_match.group(0).upper()
                     view = ASEPApproveView(plan_id)
                 
                 # Discordへ応答
