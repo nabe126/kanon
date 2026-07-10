@@ -320,7 +320,7 @@ class ASEPApproveView(discord.ui.View):
             
             def run_op(command):
                 import subprocess
-                res = subprocess.run(command, shell=True, capture_output=True, text=True)
+                res = subprocess.run(command, shell=True, capture_output=True, text=True, cwd="/workspace")
                 return f"STDOUT:\n{res.stdout}\n\nSTDERR:\n{res.stderr}"
                 
             file_path = asep._find_plan_file(self.plan_id)
@@ -467,7 +467,7 @@ async def handle_chat_command(message, command_str):
             
             def run_op(command):
                 import subprocess
-                res = subprocess.run(command, shell=True, capture_output=True, text=True)
+                res = subprocess.run(command, shell=True, capture_output=True, text=True, cwd="/workspace")
                 return f"STDOUT:\n{res.stdout}\n\nSTDERR:\n{res.stderr}"
                 
             file_path = asep._find_plan_file(plan_id)
