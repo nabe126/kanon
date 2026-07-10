@@ -70,7 +70,7 @@ async def test_generate_agent_reply_success() -> None:
     assert reply == "Hello, this is a mock reply."
     assert mock_client.models.generate_content.call_count == 1
     call_kwargs = mock_client.models.generate_content.call_args[1]
-    assert call_kwargs["model"] == 'gemini-1.5-flash'
+    assert call_kwargs["model"] == 'gemini-3.1-flash-lite'
 
 @pytest.mark.anyio
 async def test_generate_agent_reply_missing_key() -> None:

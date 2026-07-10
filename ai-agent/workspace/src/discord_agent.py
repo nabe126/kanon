@@ -740,7 +740,7 @@ async def generate_agent_reply(contents: list, api_key: str = None, genai_client
         )
 
         max_iterations = 8
-        model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+        model_name = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
         for iteration in range(max_iterations):
             config = types.GenerateContentConfig(
                 system_instruction=system_instruction,
