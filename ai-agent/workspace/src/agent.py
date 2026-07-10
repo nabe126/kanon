@@ -3,6 +3,8 @@ import sys
 import time
 import asyncio
 from google.genai import types
+from google.genai.errors import APIError, ServerError
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
 
 # 自作モジュールのパス解決
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -124,7 +126,7 @@ async def handle_cli_command(command_str):
         
         def run_op(command):
             import subprocess
-            res = subprocess.run(command, shell=True, capture_output=True, text=True)
+            res = subprocess.run(command, shell=True, capture_output=True, text=True, cwd="/workspace")
             return f"STDOUT:\n{res.stdout}\n\nSTDERR:\n{res.stderr}"
 
         file_path = asep._find_plan_file(plan_id)
@@ -241,17 +243,8 @@ async def chat_loop():
                 )
             )
 
-            # Gemini クライアント初期化とリクエスト
-            from google import genai
-            genai_client = genai.Client(api_key=api_key)
-            
             # API呼び出し
-            response = genai_client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=contents
-            )
-            
-            response_text = response.text or "(空の応答)"
+            response_text = await generate_agent_reply(contents, api_key=api_key)
             
             # 応答の記録と出力
             history.add_message(history_key, "model", response_text)
@@ -259,6 +252,115 @@ async def chat_loop():
 
         except Exception as e:
             print(f"\r❌ 内部エラーが発生しました: {e}")
+
+def _is_transient_error(exception):
+    """一過性のエラー（5xx系、または429レートリミットなど）であるか判定します"""
+    if isinstance(exception, ServerError):
+        return True
+    if isinstance(exception, APIError):
+        return exception.code in [429, 503, 504]
+    return False
+
+@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    retry=retry_if_exception(_is_transient_error),
+    reraise=True
+)
+async def generate_agent_reply(contents: list, api_key: str = None, genai_client = None) -> str:
+    """Gemini API を呼び出して応答テキストを生成します。自律エージェントとして開発用ツールを実行するループを持ちます。"""
+    if not api_key and not genai_client:
+        logger.error("GEMINI_API_KEY is not set and genai_client is not provided.")
+        return "エラー: GEMINI_API_KEY 環境変数が設定されていません。"
+
+    try:
+        if not genai_client:
+            from google import genai
+            genai_client = genai.Client(api_key=api_key)
+
+        # ツール関数のマッピング
+        from utils import agent_tools
+        tool_map = {
+            "list_dir": agent_tools.list_dir,
+            "grep_search": agent_tools.grep_search,
+            "read_file": agent_tools.read_file,
+            "replace_file_content": agent_tools.replace_file_content,
+            "write_to_file": agent_tools.write_to_file,
+            "request_command_execution": agent_tools.request_command_execution,
+        }
+        
+        tools = list(tool_map.values())
+        
+        system_instruction = (
+            "You are Kanon Arahabaki Agent (Antigravity), a powerful autonomous coding assistant.\n"
+            "You have access to tools that allow you to read and write files in the workspace, search code, and request command execution.\n"
+            "Your goal is to help the user with coding, refactoring, and debugging tasks.\n"
+            "CRITICAL: If the user asks you to run a command (such as 'make status', 'make test', etc.), do NOT reply with 'I cannot run commands' or ask the user to run it for you. You MUST call the `request_command_execution` tool to request its execution.\n"
+            "Similarly, to view file contents or list directories, you MUST use the corresponding tools (`read_file`, `list_dir`) instead of asking the user to do it.\n"
+            "When modifying files, always verify syntax and logic.\n"
+            "Keep your responses concise and update the user on what you did."
+        )
+
+        max_iterations = 8
+        model_name = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
+        for iteration in range(max_iterations):
+            config = types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                tools=tools
+            )
+            response = genai_client.models.generate_content(
+                model=model_name,
+                contents=contents,
+                config=config
+            )
+            
+            # モデルのレスポンスを履歴に追加
+            if response.candidates and response.candidates[0].content:
+                model_content = response.candidates[0].content
+                contents.append(model_content)
+            else:
+                break
+
+            function_calls = response.function_calls
+            if not function_calls:
+                return response.text or "(空の応答)"
+
+            tool_responses = []
+            for function_call in function_calls:
+                name = function_call.name
+                args = function_call.args
+                
+                logger.info(f"[AgentLoop] Tool call: {name} with args {args}")
+                
+                if name in tool_map:
+                    try:
+                        result = tool_map[name](**args)
+                    except Exception as exec_err:
+                        result = f"Error executing tool {name}: {exec_err}"
+                else:
+                    result = f"Error: Tool {name} is not registered."
+
+                logger.info(f"[AgentLoop] Tool result: {result[:200]}")
+                
+                tool_responses.append(
+                    types.Part.from_function_response(
+                        name=name,
+                        response={"result": result}
+                    )
+                )
+
+            contents.append(
+                types.Content(
+                    role="tool",
+                    parts=tool_responses
+                )
+            )
+
+        return "警告: エージェントの自律実行ループの最大回数に達しました。ここまでの結果を報告します。"
+
+    except Exception as e:
+        logger.error(f"Failed to generate content from Gemini API: {e}")
+        raise e
 
 def main():
     asyncio.run(chat_loop())
