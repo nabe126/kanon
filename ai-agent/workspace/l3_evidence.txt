@@ -1,122 +1,122 @@
 === L3 Integration Simulation Evidence ===
-Time: 2026-07-09 15:35:50
+Time: 2026-07-10 12:32:06
 
 --- 1 & 2. Pre-Rollback src/ State ---
-  agent.py -> mtime: 2026-07-09 15:35:49, sha256: 298f31a95cf7d673136b5a6b8c4a4723b3232b5eeaa343b045ebe58a39c5dd9e
-  autonomous_agent.py -> mtime: 2026-07-09 15:35:49, sha256: e3ecf7be6caa78a2f67de43ed4ec763f43a1b8e5d0bc573b5465a87848dfef18
-  discord_agent.py -> mtime: 2026-07-09 15:35:49, sha256: 334eef283b3f21160c107aa2ea09f7c9342430ca3165b747b77e1f7f50bcc60d
-  memory/__init__.py -> mtime: 2026-07-09 15:35:49, sha256: 78113bd8083d6da723d3355a8093082f2aefede834a8a42013e1849b911f35b0
-  memory/cli.py -> mtime: 2026-07-09 15:35:49, sha256: fe0b873862a1ff7a9be3ce1eb8914bc78f3ba52a7aae27e38702f1f6bd56d5ca
-  memory/core.py -> mtime: 2026-07-09 15:35:49, sha256: 84896cbdf4eaefe418eef65c040462475d8037f5b83343f5320f2b4fbfbb56be
-  utils/agent_tools.py -> mtime: 2026-07-09 15:35:49, sha256: 1f705ec11ba1d4f5eb8ef00dce9deea2596abe1e39cbc9e3737e6a271e00c9d2
-  utils/asep_middleware.py -> mtime: 2026-07-09 15:35:49, sha256: 059ef94773103d091d11b90f8a05021d7af956fa35995e3b04e7003ec36da9e6
-  utils/healthcheck.py -> mtime: 2026-07-09 15:35:49, sha256: c112b98ece6ab23d76585ee966fb07d6f0c90e0dec36c7e8795cbf75458a236b
-  utils/history.py -> mtime: 2026-07-09 15:35:49, sha256: d28d838360dca2d991c3e5f70725fdd872d2c720c36eb291fe86ca86858f43c2
-  utils/logger.py -> mtime: 2026-07-09 15:35:49, sha256: 33f87f542262c15d34f0661a20d5d7ceb3fdb11e5481a4e5924e013091abd63b
-  utils/validator.py -> mtime: 2026-07-09 15:35:49, sha256: 80cae90a91bf32b84cbcd80ead974eb207d664e1242a89ba9724671641074b88
+  agent.py -> mtime: 2026-07-10 12:32:04, sha256: 298f31a95cf7d673136b5a6b8c4a4723b3232b5eeaa343b045ebe58a39c5dd9e
+  autonomous_agent.py -> mtime: 2026-07-10 12:32:04, sha256: e3ecf7be6caa78a2f67de43ed4ec763f43a1b8e5d0bc573b5465a87848dfef18
+  discord_agent.py -> mtime: 2026-07-10 12:32:04, sha256: 8511dab71fcdb089955fa52d2ec01a9af4bbf2e8f9a77272f8b0b6a502d3a3eb
+  memory/__init__.py -> mtime: 2026-07-10 12:32:04, sha256: 78113bd8083d6da723d3355a8093082f2aefede834a8a42013e1849b911f35b0
+  memory/cli.py -> mtime: 2026-07-10 12:32:04, sha256: fe0b873862a1ff7a9be3ce1eb8914bc78f3ba52a7aae27e38702f1f6bd56d5ca
+  memory/core.py -> mtime: 2026-07-10 12:32:04, sha256: 84896cbdf4eaefe418eef65c040462475d8037f5b83343f5320f2b4fbfbb56be
+  utils/agent_tools.py -> mtime: 2026-07-10 12:32:04, sha256: 81e296a01e74e567be0fce5cf8d49c2b8a234576d06af2884e7d51b91707f099
+  utils/asep_middleware.py -> mtime: 2026-07-10 12:32:04, sha256: 059ef94773103d091d11b90f8a05021d7af956fa35995e3b04e7003ec36da9e6
+  utils/healthcheck.py -> mtime: 2026-07-10 12:32:04, sha256: c112b98ece6ab23d76585ee966fb07d6f0c90e0dec36c7e8795cbf75458a236b
+  utils/history.py -> mtime: 2026-07-10 12:32:04, sha256: d28d838360dca2d991c3e5f70725fdd872d2c720c36eb291fe86ca86858f43c2
+  utils/logger.py -> mtime: 2026-07-10 12:32:04, sha256: 33f87f542262c15d34f0661a20d5d7ceb3fdb11e5481a4e5924e013091abd63b
+  utils/validator.py -> mtime: 2026-07-10 12:32:04, sha256: 80cae90a91bf32b84cbcd80ead974eb207d664e1242a89ba9724671641074b88
 
 --- 1 & 2. Post-Rollback src/ State ---
-  agent.py -> mtime: 2026-07-09 15:36:27, sha256: 298f31a95cf7d673136b5a6b8c4a4723b3232b5eeaa343b045ebe58a39c5dd9e
-  autonomous_agent.py -> mtime: 2026-07-09 15:36:27, sha256: e3ecf7be6caa78a2f67de43ed4ec763f43a1b8e5d0bc573b5465a87848dfef18
-  discord_agent.py -> mtime: 2026-07-09 15:36:27, sha256: 334eef283b3f21160c107aa2ea09f7c9342430ca3165b747b77e1f7f50bcc60d
-  memory/__init__.py -> mtime: 2026-07-09 15:36:27, sha256: 78113bd8083d6da723d3355a8093082f2aefede834a8a42013e1849b911f35b0
-  memory/cli.py -> mtime: 2026-07-09 15:36:27, sha256: fe0b873862a1ff7a9be3ce1eb8914bc78f3ba52a7aae27e38702f1f6bd56d5ca
-  memory/core.py -> mtime: 2026-07-09 15:36:27, sha256: 84896cbdf4eaefe418eef65c040462475d8037f5b83343f5320f2b4fbfbb56be
-  utils/agent_tools.py -> mtime: 2026-07-09 15:36:27, sha256: 1f705ec11ba1d4f5eb8ef00dce9deea2596abe1e39cbc9e3737e6a271e00c9d2
-  utils/asep_middleware.py -> mtime: 2026-07-09 15:36:27, sha256: 059ef94773103d091d11b90f8a05021d7af956fa35995e3b04e7003ec36da9e6
-  utils/healthcheck.py -> mtime: 2026-07-09 15:36:27, sha256: c112b98ece6ab23d76585ee966fb07d6f0c90e0dec36c7e8795cbf75458a236b
-  utils/history.py -> mtime: 2026-07-09 15:36:27, sha256: d28d838360dca2d991c3e5f70725fdd872d2c720c36eb291fe86ca86858f43c2
-  utils/logger.py -> mtime: 2026-07-09 15:36:27, sha256: 33f87f542262c15d34f0661a20d5d7ceb3fdb11e5481a4e5924e013091abd63b
-  utils/validator.py -> mtime: 2026-07-09 15:36:27, sha256: 80cae90a91bf32b84cbcd80ead974eb207d664e1242a89ba9724671641074b88
+  agent.py -> mtime: 2026-07-10 12:32:44, sha256: 298f31a95cf7d673136b5a6b8c4a4723b3232b5eeaa343b045ebe58a39c5dd9e
+  autonomous_agent.py -> mtime: 2026-07-10 12:32:44, sha256: e3ecf7be6caa78a2f67de43ed4ec763f43a1b8e5d0bc573b5465a87848dfef18
+  discord_agent.py -> mtime: 2026-07-10 12:32:44, sha256: 8511dab71fcdb089955fa52d2ec01a9af4bbf2e8f9a77272f8b0b6a502d3a3eb
+  memory/__init__.py -> mtime: 2026-07-10 12:32:44, sha256: 78113bd8083d6da723d3355a8093082f2aefede834a8a42013e1849b911f35b0
+  memory/cli.py -> mtime: 2026-07-10 12:32:44, sha256: fe0b873862a1ff7a9be3ce1eb8914bc78f3ba52a7aae27e38702f1f6bd56d5ca
+  memory/core.py -> mtime: 2026-07-10 12:32:44, sha256: 84896cbdf4eaefe418eef65c040462475d8037f5b83343f5320f2b4fbfbb56be
+  utils/agent_tools.py -> mtime: 2026-07-10 12:32:44, sha256: 81e296a01e74e567be0fce5cf8d49c2b8a234576d06af2884e7d51b91707f099
+  utils/asep_middleware.py -> mtime: 2026-07-10 12:32:44, sha256: 059ef94773103d091d11b90f8a05021d7af956fa35995e3b04e7003ec36da9e6
+  utils/healthcheck.py -> mtime: 2026-07-10 12:32:44, sha256: c112b98ece6ab23d76585ee966fb07d6f0c90e0dec36c7e8795cbf75458a236b
+  utils/history.py -> mtime: 2026-07-10 12:32:44, sha256: d28d838360dca2d991c3e5f70725fdd872d2c720c36eb291fe86ca86858f43c2
+  utils/logger.py -> mtime: 2026-07-10 12:32:44, sha256: 33f87f542262c15d34f0661a20d5d7ceb3fdb11e5481a4e5924e013091abd63b
+  utils/validator.py -> mtime: 2026-07-10 12:32:44, sha256: 80cae90a91bf32b84cbcd80ead974eb207d664e1242a89ba9724671641074b88
 
 --- 3. Monitor Logs ---
-[2026-07-09 15:36:13] [Monitor] Starting Kanon Rollback Monitor loop...
-[2026-07-09 15:36:13] [Monitor] Healthcheck request failed: <urlopen error [Errno 111] Connection refused>
-[2026-07-09 15:36:13] [Monitor] Healthcheck request failed: <urlopen error [Errno 111] Connection refused>
-[2026-07-09 15:36:13] [Monitor] Healthcheck failed (1/3)
-[2026-07-09 15:36:15] [Monitor] Healthcheck request failed: <urlopen error [Errno 111] Connection refused>
-[2026-07-09 15:36:15] [Monitor] Healthcheck failed (2/3)
-[2026-07-09 15:36:17] [Monitor] Agent recovered. Resetting counter.
-[Monitor] Created snapshot: snapshot_20260709_153617
-[Monitor] Updated LKG reference to: snapshot_20260709_153617
-[2026-07-09 15:36:23] [Monitor] Healthcheck request failed: HTTP Error 500: INTERNAL SERVER ERROR
-[2026-07-09 15:36:23] [Monitor] Healthcheck failed (1/3)
-[2026-07-09 15:36:25] [Monitor] Healthcheck request failed: HTTP Error 500: INTERNAL SERVER ERROR
-[2026-07-09 15:36:25] [Monitor] Healthcheck failed (2/3)
-[2026-07-09 15:36:27] [Monitor] Healthcheck request failed: HTTP Error 500: INTERNAL SERVER ERROR
-[2026-07-09 15:36:27] [Monitor] Healthcheck failed (3/3)
-[2026-07-09 15:36:27] [Monitor] Maximum failures reached! Triggering rollback...
-[2026-07-09 15:36:27] [Monitor] Initiating automatic rollback procedure...
+[2026-07-10 12:32:30] [Monitor] Starting Kanon Rollback Monitor loop...
+[2026-07-10 12:32:30] [Monitor] Healthcheck request failed: <urlopen error [Errno 111] Connection refused>
+[2026-07-10 12:32:30] [Monitor] Healthcheck request failed: <urlopen error [Errno 111] Connection refused>
+[2026-07-10 12:32:30] [Monitor] Healthcheck failed (1/3)
+[2026-07-10 12:32:32] [Monitor] Agent recovered. Resetting counter.
+[Monitor] Created snapshot: snapshot_20260710_123232
+[Monitor] Updated LKG reference to: snapshot_20260710_123232
+[2026-07-10 12:32:40] [Monitor] Healthcheck request failed: HTTP Error 500: INTERNAL SERVER ERROR
+[2026-07-10 12:32:40] [Monitor] Healthcheck failed (1/3)
+[2026-07-10 12:32:42] [Monitor] Healthcheck request failed: HTTP Error 500: INTERNAL SERVER ERROR
+[2026-07-10 12:32:42] [Monitor] Healthcheck failed (2/3)
+[2026-07-10 12:32:44] [Monitor] Healthcheck request failed: HTTP Error 500: INTERNAL SERVER ERROR
+[2026-07-10 12:32:44] [Monitor] Healthcheck failed (3/3)
+[2026-07-10 12:32:44] [Monitor] Maximum failures reached! Triggering rollback...
+[2026-07-10 12:32:44] [Monitor] Initiating automatic rollback procedure...
 [Monitor] Preserving failed src/ state...
-[Monitor] Created snapshot: snapshot_20260709_153627
-[Monitor] Restored: snapshot_20260709_153617 -> src/
+[Monitor] Created snapshot: snapshot_20260710_123244
+[Monitor] Restored: snapshot_20260710_123232 -> src/
 [Monitor] Restarting Docker container via API: kanon-test-agent-core
 
 
 --- 4. Agent Logs (Post-Rollback / Pre-Recovery) ---
-[2026-07-09 15:36:14,155] [INFO] [discord_agent] [Reloader] Starting parent monitor process for: /workspace/src
-[2026-07-09 15:36:15,383] [INFO] [discord_agent] Starting Flask app on port 5000...
+[2026-07-10 12:32:31,087] [INFO] [discord_agent] [Reloader] Starting parent monitor process for: /workspace/src
+[2026-07-10 12:32:32,194] [INFO] [discord_agent] Starting Flask app on port 5000...
+[2026-07-10 12:32:32,194] [INFO] [discord_agent] AI Agent main process started.
+[2026-07-10 12:32:32,194] [WARNING] [discord_agent] GEMINI_API_KEY environment variable not set.
  * Serving Flask app 'discord_agent'
+[2026-07-10 12:32:32,195] [INFO] [discord_agent] DISCORD_BOT_TOKEN not found. Falling back to Mock mode.
  * Debug mode: on
-[2026-07-09 15:36:15,383] [INFO] [discord_agent] AI Agent main process started.
-[2026-07-09 15:36:15,384] [WARNING] [discord_agent] GEMINI_API_KEY environment variable not set.
-[2026-07-09 15:36:15,384] [INFO] [discord_agent] DISCORD_BOT_TOKEN not found. Falling back to Mock mode.
-[2026-07-09 15:36:15,385] [INFO] [discord_agent] Starting mock Discord loop (KANON_MOCK_DISCORD=true or token not set).
+[2026-07-10 12:32:32,195] [INFO] [discord_agent] Starting mock Discord loop (KANON_MOCK_DISCORD=true or token not set).
 [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5000
  * Running on http://172.18.0.2:5000
 [33mPress CTRL+C to quit[0m
-172.18.0.1 - - [09/Jul/2026 15:36:16] "GET /healthz HTTP/1.1" 200 -
-172.18.0.3 - - [09/Jul/2026 15:36:17] "GET /healthz HTTP/1.1" 200 -
-172.18.0.3 - - [09/Jul/2026 15:36:19] "GET /healthz HTTP/1.1" 200 -
-172.18.0.3 - - [09/Jul/2026 15:36:21] "GET /healthz HTTP/1.1" 200 -
-[2026-07-09 15:36:22,948] [WARNING] [discord_agent] [TestHarness] Dynamic failure triggered via /healthz/fail
-172.18.0.1 - - [09/Jul/2026 15:36:22] "GET /healthz/fail HTTP/1.1" 200 -
-172.18.0.3 - - [09/Jul/2026 15:36:23] "[35m[1mGET /healthz HTTP/1.1[0m" 500 -
-172.18.0.3 - - [09/Jul/2026 15:36:25] "[35m[1mGET /healthz HTTP/1.1[0m" 500 -
-172.18.0.3 - - [09/Jul/2026 15:36:27] "[35m[1mGET /healthz HTTP/1.1[0m" 500 -
-[2026-07-09 15:36:28,159] [WARNING] [discord_agent] [Reloader] File modification detected. Restarting child process...
+172.18.0.3 - - [10/Jul/2026 12:32:32] "GET /healthz HTTP/1.1" 200 -
+172.18.0.1 - - [10/Jul/2026 12:32:34] "GET /healthz HTTP/1.1" 200 -
+172.18.0.3 - - [10/Jul/2026 12:32:34] "GET /healthz HTTP/1.1" 200 -
+172.18.0.3 - - [10/Jul/2026 12:32:36] "GET /healthz HTTP/1.1" 200 -
+172.18.0.3 - - [10/Jul/2026 12:32:38] "GET /healthz HTTP/1.1" 200 -
+[2026-07-10 12:32:40,097] [WARNING] [discord_agent] [TestHarness] Dynamic failure triggered via /healthz/fail
+172.18.0.1 - - [10/Jul/2026 12:32:40] "GET /healthz/fail HTTP/1.1" 200 -
+172.18.0.3 - - [10/Jul/2026 12:32:40] "[35m[1mGET /healthz HTTP/1.1[0m" 500 -
+172.18.0.3 - - [10/Jul/2026 12:32:42] "[35m[1mGET /healthz HTTP/1.1[0m" 500 -
+172.18.0.3 - - [10/Jul/2026 12:32:44] "[35m[1mGET /healthz HTTP/1.1[0m" 500 -
+[2026-07-10 12:32:45,091] [WARNING] [discord_agent] [Reloader] File modification detected. Restarting child process...
 
 
 
 --- 6. Agent Logs (Post-Recovery) ---
-[2026-07-09 15:36:14,155] [INFO] [discord_agent] [Reloader] Starting parent monitor process for: /workspace/src
-[2026-07-09 15:36:15,383] [INFO] [discord_agent] Starting Flask app on port 5000...
+[2026-07-10 12:32:31,087] [INFO] [discord_agent] [Reloader] Starting parent monitor process for: /workspace/src
+[2026-07-10 12:32:32,194] [INFO] [discord_agent] Starting Flask app on port 5000...
+[2026-07-10 12:32:32,194] [INFO] [discord_agent] AI Agent main process started.
+[2026-07-10 12:32:32,194] [WARNING] [discord_agent] GEMINI_API_KEY environment variable not set.
  * Serving Flask app 'discord_agent'
+[2026-07-10 12:32:32,195] [INFO] [discord_agent] DISCORD_BOT_TOKEN not found. Falling back to Mock mode.
  * Debug mode: on
-[2026-07-09 15:36:15,383] [INFO] [discord_agent] AI Agent main process started.
-[2026-07-09 15:36:15,384] [WARNING] [discord_agent] GEMINI_API_KEY environment variable not set.
-[2026-07-09 15:36:15,384] [INFO] [discord_agent] DISCORD_BOT_TOKEN not found. Falling back to Mock mode.
-[2026-07-09 15:36:15,385] [INFO] [discord_agent] Starting mock Discord loop (KANON_MOCK_DISCORD=true or token not set).
+[2026-07-10 12:32:32,195] [INFO] [discord_agent] Starting mock Discord loop (KANON_MOCK_DISCORD=true or token not set).
 [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5000
  * Running on http://172.18.0.2:5000
 [33mPress CTRL+C to quit[0m
-172.18.0.1 - - [09/Jul/2026 15:36:16] "GET /healthz HTTP/1.1" 200 -
-172.18.0.3 - - [09/Jul/2026 15:36:17] "GET /healthz HTTP/1.1" 200 -
-172.18.0.3 - - [09/Jul/2026 15:36:19] "GET /healthz HTTP/1.1" 200 -
-172.18.0.3 - - [09/Jul/2026 15:36:21] "GET /healthz HTTP/1.1" 200 -
-[2026-07-09 15:36:22,948] [WARNING] [discord_agent] [TestHarness] Dynamic failure triggered via /healthz/fail
-172.18.0.1 - - [09/Jul/2026 15:36:22] "GET /healthz/fail HTTP/1.1" 200 -
-172.18.0.3 - - [09/Jul/2026 15:36:23] "[35m[1mGET /healthz HTTP/1.1[0m" 500 -
-172.18.0.3 - - [09/Jul/2026 15:36:25] "[35m[1mGET /healthz HTTP/1.1[0m" 500 -
-172.18.0.3 - - [09/Jul/2026 15:36:27] "[35m[1mGET /healthz HTTP/1.1[0m" 500 -
-[2026-07-09 15:36:28,159] [WARNING] [discord_agent] [Reloader] File modification detected. Restarting child process...
-[2026-07-09 15:36:29,406] [INFO] [discord_agent] Starting Flask app on port 5000...
-[2026-07-09 15:36:29,406] [INFO] [discord_agent] AI Agent main process started.
+172.18.0.3 - - [10/Jul/2026 12:32:32] "GET /healthz HTTP/1.1" 200 -
+172.18.0.1 - - [10/Jul/2026 12:32:34] "GET /healthz HTTP/1.1" 200 -
+172.18.0.3 - - [10/Jul/2026 12:32:34] "GET /healthz HTTP/1.1" 200 -
+172.18.0.3 - - [10/Jul/2026 12:32:36] "GET /healthz HTTP/1.1" 200 -
+172.18.0.3 - - [10/Jul/2026 12:32:38] "GET /healthz HTTP/1.1" 200 -
+[2026-07-10 12:32:40,097] [WARNING] [discord_agent] [TestHarness] Dynamic failure triggered via /healthz/fail
+172.18.0.1 - - [10/Jul/2026 12:32:40] "GET /healthz/fail HTTP/1.1" 200 -
+172.18.0.3 - - [10/Jul/2026 12:32:40] "[35m[1mGET /healthz HTTP/1.1[0m" 500 -
+172.18.0.3 - - [10/Jul/2026 12:32:42] "[35m[1mGET /healthz HTTP/1.1[0m" 500 -
+172.18.0.3 - - [10/Jul/2026 12:32:44] "[35m[1mGET /healthz HTTP/1.1[0m" 500 -
+[2026-07-10 12:32:45,091] [WARNING] [discord_agent] [Reloader] File modification detected. Restarting child process...
+[2026-07-10 12:32:46,196] [INFO] [discord_agent] Starting Flask app on port 5000...
  * Serving Flask app 'discord_agent'
  * Debug mode: on
-[2026-07-09 15:36:29,406] [WARNING] [discord_agent] GEMINI_API_KEY environment variable not set.
-[2026-07-09 15:36:29,407] [INFO] [discord_agent] DISCORD_BOT_TOKEN not found. Falling back to Mock mode.
-[2026-07-09 15:36:29,407] [INFO] [discord_agent] Starting mock Discord loop (KANON_MOCK_DISCORD=true or token not set).
+[2026-07-10 12:32:46,196] [INFO] [discord_agent] AI Agent main process started.
+[2026-07-10 12:32:46,197] [WARNING] [discord_agent] GEMINI_API_KEY environment variable not set.
+[2026-07-10 12:32:46,197] [INFO] [discord_agent] DISCORD_BOT_TOKEN not found. Falling back to Mock mode.
+[2026-07-10 12:32:46,197] [INFO] [discord_agent] Starting mock Discord loop (KANON_MOCK_DISCORD=true or token not set).
 [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5000
  * Running on http://172.18.0.2:5000
 [33mPress CTRL+C to quit[0m
-172.18.0.1 - - [09/Jul/2026 15:36:31] "GET /healthz HTTP/1.1" 200 -
+172.18.0.1 - - [10/Jul/2026 12:32:48] "GET /healthz HTTP/1.1" 200 -
 
 
 Auto-Recovery Verification: PASSED
@@ -125,5 +125,5 @@ Simulation Result: SUCCESS
 ==========================================
 --- Docker PS State (Finally) ---
 CONTAINER ID   IMAGE            COMMAND                  CREATED          STATUS          PORTS                                         NAMES
-aaab7c8584dd   kanon-monitor    "python3 /controller…"   19 seconds ago   Up 18 seconds                                                 kanon-test-monitor
-cdebb2a0ff6c   kanon-ai-agent   "python3 src/discord…"   19 seconds ago   Up 18 seconds   0.0.0.0:5001->5000/tcp, [::]:5001->5000/tcp   kanon-test-agent-core
+588ca56f5c2e   kanon-monitor    "python3 /controller…"   19 seconds ago   Up 18 seconds                                                 kanon-test-monitor
+069a426c38c2   kanon-ai-agent   "python3 src/discord…"   19 seconds ago   Up 18 seconds   0.0.0.0:5001->5000/tcp, [::]:5001->5000/tcp   kanon-test-agent-core
