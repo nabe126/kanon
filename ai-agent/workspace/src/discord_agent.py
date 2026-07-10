@@ -333,7 +333,7 @@ class ASEPApproveView(discord.ui.View):
             
             exec_res = asep.execute_plan(self.plan_id, run_op, op_cmd)
             
-            if exec_res.get("status") == "Executed":
+            if exec_res.get("status") == "EXECUTED":
                 await interaction.channel.send(
                     f"✅ **計画 `{self.plan_id}` の実行が完了しました！**\n"
                     f"**【実行結果】**\n```\n{exec_res['result'][:1800]}\n```"
@@ -480,7 +480,7 @@ async def handle_chat_command(message, command_str):
             
             exec_res = asep.execute_plan(plan_id, run_op, op_cmd)
             
-            if exec_res.get("status") == STATUS_EXECUTED:
+            if exec_res.get("status") == "EXECUTED":
                 await message.reply(
                     f"✅ **計画 `{plan_id}` の実行が完了しました！**\n"
                     f"**【実行結果】**\n{exec_res['result'][:1500]}"
