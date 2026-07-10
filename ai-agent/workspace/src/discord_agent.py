@@ -339,7 +339,8 @@ class ASEPApproveView(discord.ui.View):
                     f"**【実行結果】**\n```\n{exec_res['result'][:1800]}\n```"
                 )
             else:
-                await interaction.channel.send(f"❌ **計画 `{self.plan_id}` の実行に失敗しました。**\nエラー: {exec_res.get('error')}")
+                err_detail = str(exec_res.get('error'))[:1800]
+                await interaction.channel.send(f"❌ **計画 `{self.plan_id}` の実行に失敗しました。**\nエラー: {err_detail}")
             
             self.stop()
         except Exception as e:
@@ -686,7 +687,10 @@ async def on_message(message):
                 
             except Exception as e:
                 logger.error(f"Error while processing message and calling Gemini API: {e}")
-                await message.reply(f"内部エラーが発生しました: {e}")
+                err_msg = f"内部エラーが発生しました: {e}"
+                if len(err_msg) > 1900:
+                    err_msg = err_msg[:1900] + "\n... (エラーメッセージが長すぎるため省略されました)"
+                await message.reply(err_msg)
 
 def _is_transient_error(exception):
     """一過性のエラー（5xx系、または429レートリミットなど）であるか判定します"""
@@ -736,13 +740,14 @@ async def generate_agent_reply(contents: list, api_key: str = None, genai_client
         )
 
         max_iterations = 8
+        model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
         for iteration in range(max_iterations):
             config = types.GenerateContentConfig(
                 system_instruction=system_instruction,
                 tools=tools
             )
             response = genai_client.models.generate_content(
-                model='gemini-2.5-flash',
+                model=model_name,
                 contents=contents,
                 config=config
             )

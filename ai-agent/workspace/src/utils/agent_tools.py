@@ -1,6 +1,7 @@
 import os
 import sys
 import fnmatch
+from typing import Optional
 from utils.logger import get_logger
 
 logger = get_logger("agent_tools")
@@ -67,7 +68,7 @@ def grep_search(query: str, search_path: str) -> str:
     except Exception as e:
         return f"Error in grep_search: {e}"
 
-def read_file(absolute_path: str, start_line: int = None, end_line: int = None) -> str:
+def read_file(absolute_path: str, start_line: Optional[int] = None, end_line: Optional[int] = None) -> str:
     """指定されたファイルの内容を読み込みます。行数を指定して範囲読み込みも可能です。"""
     try:
         if not os.path.isabs(absolute_path):
