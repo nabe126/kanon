@@ -114,3 +114,20 @@ async def test_generate_agent_reply_retry_failure(monkeypatch) -> None:
         await generate_agent_reply(contents, genai_client=mock_client)
     
     assert mock_client.models.generate_content.call_count == 5
+
+def test_agent_tools_blacklist() -> None:
+    """agent_tools のセキュリティブラックリストが正しくアクセスを拒否することのテスト"""
+    from src.utils.agent_tools import _is_blocked_path, read_file, list_dir
+    
+    # 判定関数のテスト
+    assert _is_blocked_path("/workspace/ai-agent/secrets/.env") is True
+    assert _is_blocked_path("/workspace/controller/monitor.py") is True
+    assert _is_blocked_path("/workspace/.git/config") is True
+    assert _is_blocked_path("/workspace/ai-agent/workspace/src/discord_agent.py") is False
+    
+    # ツール呼び出し時のブロックテスト
+    res_read = read_file("/workspace/ai-agent/secrets/.env")
+    assert "restricted for security" in res_read
+    
+    res_list = list_dir("/workspace/controller")
+    assert "restricted for security" in res_list

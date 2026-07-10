@@ -6,12 +6,22 @@ from utils.logger import get_logger
 
 logger = get_logger("agent_tools")
 
+def _is_blocked_path(path: str) -> bool:
+    """セキュリティ上の理由から、アクセスを制限すべきパスであるか判定します。"""
+    normalized_path = os.path.normpath(path)
+    blocked_keywords = ["secrets", "controller", ".git", ".env"]
+    parts = normalized_path.split(os.sep)
+    return any(any(k in part for k in blocked_keywords) for part in parts)
+
 def list_dir(directory_path: str) -> str:
     """指定されたディレクトリのファイルおよびサブディレクトリ一覧を返します。"""
     try:
         # 相対パスの場合は /workspace を基準にする
         if not os.path.isabs(directory_path):
             directory_path = os.path.abspath(os.path.join("/workspace", directory_path))
+            
+        if _is_blocked_path(directory_path):
+            return f"Error: Access to path '{directory_path}' is restricted for security and system integrity reasons."
             
         if not os.path.exists(directory_path):
             return f"Error: Directory {directory_path} does not exist."
@@ -35,6 +45,9 @@ def grep_search(query: str, search_path: str) -> str:
     try:
         if not os.path.isabs(search_path):
             search_path = os.path.abspath(os.path.join("/workspace", search_path))
+
+        if _is_blocked_path(search_path):
+            return f"Error: Access to path '{search_path}' is restricted for security and system integrity reasons."
 
         if not os.path.exists(search_path):
             return f"Error: Path {search_path} does not exist."
@@ -74,6 +87,9 @@ def read_file(absolute_path: str, start_line: Optional[int] = None, end_line: Op
         if not os.path.isabs(absolute_path):
             absolute_path = os.path.abspath(os.path.join("/workspace", absolute_path))
 
+        if _is_blocked_path(absolute_path):
+            return f"Error: Access to path '{absolute_path}' is restricted for security and system integrity reasons."
+
         if not os.path.exists(absolute_path):
             return f"Error: File {absolute_path} does not exist."
         if not os.path.isfile(absolute_path):
@@ -97,6 +113,9 @@ def replace_file_content(target_file: str, target_content: str, replacement_cont
     try:
         if not os.path.isabs(target_file):
             target_file = os.path.abspath(os.path.join("/workspace", target_file))
+
+        if _is_blocked_path(target_file):
+            return f"Error: Access to path '{target_file}' is restricted for security and system integrity reasons."
 
         if not os.path.exists(target_file):
             return f"Error: File {target_file} does not exist."
@@ -135,6 +154,9 @@ def write_to_file(target_file: str, code_content: str, overwrite: bool = False) 
     try:
         if not os.path.isabs(target_file):
             target_file = os.path.abspath(os.path.join("/workspace", target_file))
+
+        if _is_blocked_path(target_file):
+            return f"Error: Access to path '{target_file}' is restricted for security and system integrity reasons."
 
         if os.path.exists(target_file) and not overwrite:
             return f"Error: File {target_file} already exists. Set overwrite=True to replace it."
